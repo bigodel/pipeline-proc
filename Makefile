@@ -38,7 +38,7 @@ SYSTEMC_LDFLAGS  ?= -L$(SYSTEMC_LIB_DIR) $(LDFLAG_RPATH)$(SYSTEMC_LIB_DIR)
 SYSTEMC_LIBS     ?= -lsystemc -lm
 
 # include directories
-INCDIR   += -I. -I.. -I$(SYSTEMC_INC_DIR)
+INCDIR   += -I. -I.. -Isrc/ -I$(SYSTEMC_INC_DIR)
 
 # library directories
 LIBDIR   += -L. -L..
@@ -61,8 +61,7 @@ run: all
 build: $(PROJECT)
 
 $(PROJECT): $(OBJS)
-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(LIBS) 2>&1 | c++filt
-	@test -x $@
+	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(LIBS) 2>&1
 
 .cpp.o:
 	$(CXX) $(CXXFLAGS) -c $< -o $@
