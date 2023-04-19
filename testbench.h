@@ -2,7 +2,8 @@
 #include "defines.h"
 
 SC_MODULE(testbench) {
-	sc_out<WORD_TYPE> a, b, sel;
+	sc_out<sc_uint<32>> a, b;
+    sc_out<bool> sel;
 
 	void test() {
 		a.write(10);

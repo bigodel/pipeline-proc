@@ -5,7 +5,8 @@
 // #include "include/adder/adder.h"
 
 int sc_main(int argc, char* argv[]) {
-    sc_signal<WORD_TYPE> a, b, sel;
+    sc_signal<sc_uint<32>> a, b;
+    sc_signal<bool> sel;
 
     testbench tb("mux testbench");
     tb.a(a);
