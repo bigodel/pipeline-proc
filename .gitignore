@@ -33,7 +33,7 @@
 /config/test-driver
 /configure
 
-Makefile
+#Makefile
 Makefile.in
 
 # ignore recommended build directory and variants
