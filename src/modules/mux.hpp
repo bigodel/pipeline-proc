@@ -1,4 +1,3 @@
-#include "defines.h"
 #include <systemc.h>
 
 SC_MODULE(mux2x1) {
