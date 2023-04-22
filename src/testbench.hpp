@@ -16,9 +16,7 @@ SC_MODULE(mux_testbench) {
         sc_stop();
     }
 
-    SC_CTOR(mux_testbench) {
-        SC_THREAD(test);
-    }
+    SC_CTOR(mux_testbench) { SC_THREAD(test); }
 };
 
 SC_MODULE(cmd_testbench) {

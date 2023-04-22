@@ -11,8 +11,10 @@ SC_MODULE(mux2x1) {
     }
 
     void select() {
-        if (sel.read()) out.write(a.read());
-        else out.write(b.read());
+        if (sel.read())
+            out.write(a.read());
+        else
+            out.write(b.read());
     }
 };
 

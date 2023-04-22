@@ -4,7 +4,7 @@
 using namespace std;
 
 SC_MODULE(mon) {
-    sc_in<sc_uint<32>> A,B, RES;
+    sc_in<sc_uint<32>> A, B, RES;
     sc_in<int> CMD;
     sc_in<bool> Clk;
 
@@ -14,7 +14,7 @@ SC_MODULE(mon) {
         cout << setw(2) << "B";
         cout << setw(5) << "CMD";
         cout << setw(5) << "RES" << endl;
-        while(true) {
+        while (true) {
             cout << setw(10) << sc_time_stamp();
             cout << setw(2) << A.read();
             cout << setw(2) << B.read();
