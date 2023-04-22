@@ -4,20 +4,22 @@
 using namespace std;
 
 SC_MODULE(mon) {
-    sc_in<bool> A,B,CO,S,Clk;
+    sc_in<sc_uint<32>> A,B, RES;
+    sc_in<int> CMD;
+    sc_in<bool> Clk;
 
     void monitor() {
         cout << setw(10) << "Time";
         cout << setw(2) << "A";
         cout << setw(2) << "B";
-        cout << setw(3) << "CO";
-        cout << setw(2) << "S" << endl;
+        cout << setw(5) << "CMD";
+        cout << setw(5) << "RES" << endl;
         while(true) {
             cout << setw(10) << sc_time_stamp();
             cout << setw(2) << A.read();
             cout << setw(2) << B.read();
-            cout << setw(3) << CO.read();
-            cout << setw(2) << S.read() << endl;
+            cout << setw(5) << CMD.read();
+            cout << setw(5) << RES.read() << endl;
             wait();
         }
     }

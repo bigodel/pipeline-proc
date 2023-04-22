@@ -14,12 +14,12 @@ SC_MODULE(mux2x1) {
     void select() {
         if (sel.read()) out.write(a.read());
         else out.write(b.read());
-    }   
+    }
 };
 
 // SC_MODULE(mux3x1) {
-//     
+//
 //     SC_CTOR(mux3x1) {
-// 
+//
 //     }
 // }

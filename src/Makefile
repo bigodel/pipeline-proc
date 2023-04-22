@@ -18,7 +18,6 @@ LDFLAG_RPATH ?= -Wl,-rpath=
 # variable that points to SystemC installation path
 SYSTEMC_HOME ?= $SYSTEMC_HOME
 
-# select the target architecture
 TARGET_ARCH ?= linux
 
 # select the architecture suffix, if necessary
@@ -28,7 +27,8 @@ ARCH_SUFFIX ?= -$(TARGET_ARCH)
 SYSTEMC_INC_DIR ?= $(SYSTEMC_HOME)/include
 
 # explicit location if the systenc library
-SYSTEMC_LIB_DIR ?= $(SYSTEMC_HOME)/lib$(ARCH_SUFFIX)
+#SYSTEMC_LIB_DIR ?= $(SYSTEMC_HOME)/lib$(ARCH_SUFFIX)
+SYSTEMC_LIB_DIR ?= $(SYSTEMC_HOME)/lib
 
 # combined flags
 SYSTEMC_CXXFLAGS = $(FLAGS_COMMON) $(FLAGS_STRICT) $(FLAGS_WERROR)
