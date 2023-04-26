@@ -1,6 +1,6 @@
 #include "systemc.h"
 
-SC_MODULE(testbench) {
+SC_MODULE(testbench_ula) {
 	sc_out<sc_uint<32>> A, B;
 	sc_out<int> CMD;
 	sc_in<bool> Clk;
@@ -44,7 +44,7 @@ SC_MODULE(testbench) {
 		sc_stop();
 	}
 
-	SC_CTOR(testbench) {
+	SC_CTOR(testbench_ula) {
 		SC_THREAD(TbGen);
 		sensitive << Clk.pos();
 	}
