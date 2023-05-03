@@ -3,7 +3,7 @@
 
 using namespace std;
 
-SC_MODULE(monitor_ula) {
+SC_MODULE(monitor_alu) {
     sc_in<sc_uint<32>> A,B, RES;
     sc_in<int> CMD;
     sc_in<bool> Clk;
@@ -24,7 +24,7 @@ SC_MODULE(monitor_ula) {
         }
     }
 
-    SC_CTOR(monitor_ula) {
+    SC_CTOR(monitor_alu) {
         SC_THREAD(monitor);
         sensitive << Clk.pos();
     }
