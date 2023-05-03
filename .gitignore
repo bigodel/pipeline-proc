@@ -79,3 +79,6 @@ _UpgradeReport_Files/
 Makefile.config
 mips
 wave.vcd
+
+# emacs specific
+.dir-locals.el
