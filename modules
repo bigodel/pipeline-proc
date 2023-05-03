@@ -16,7 +16,7 @@ modules:
 - [ ] Control Unit (CU): It generates control signals based on the current
   instruction being executed.
 
-- [ ] Sign Extension Unit (SE): It sign-extends the immediate value of the
+- [X] Sign Extension Unit (SE): It sign-extends the immediate value of the
   current instruction to 32 bits.
 
 - [ ] Shift Left 2 Unit (SL2): It shifts the immediate value of the current
