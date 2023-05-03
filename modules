@@ -1,0 +1,31 @@
+A MIPS monocycle processor in SystemC typically consists of the following
+modules:
+
+- [X] Instruction Memory (IM): It stores the instructions to be executed by the
+  processor.
+
+- [X] Register File (RF): It stores the general-purpose registers and provides
+  read and write access to them.
+
+- [X] ALU (Arithmetic Logic Unit): It performs arithmetic and logical operations
+  on data.
+
+- [ ] Data Memory (DM): It stores data used by the program and provides read and
+  write access to it.
+
+- [ ] Control Unit (CU): It generates control signals based on the current
+  instruction being executed.
+
+- [ ] Sign Extension Unit (SE): It sign-extends the immediate value of the
+  current instruction to 32 bits.
+
+- [ ] Shift Left 2 Unit (SL2): It shifts the immediate value of the current
+  instruction left by 2 bits to create the memory address.
+
+- [X] Program Counter (PC): It stores the address of the current instruction
+  being executed and updates it to the address of the next instruction.
+
+- [X] Multiplexer (MUX): It selects between different sources of input data
+  based on control signals.
+
+- [X] Adder: It performs arithmetic addition of two numbers.
