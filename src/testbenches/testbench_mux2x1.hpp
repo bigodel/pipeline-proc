@@ -1,30 +1,30 @@
+#include "definitions.hpp"
 #include <systemc.h>
-#include "defines.h"
 
 SC_MODULE(testbench_mux2x1) {
-	sc_out<sc_uint<32>> a, b;
-	sc_out<bool> sel;
-	sc_in<bool> Clk;
+    sc_out<WORD> a, b;
+    sc_out<bool> sel;
+    sc_in<bool> Clk;
 
-	void test() {
-		a.write(10);
-		b.write(20); 
+    void test() {
+        a.write(10);
+        b.write(20);
 
-		wait();
+        wait();
 
-		sel.write(true);
+        sel.write(true);
 
-		wait();
+        wait();
 
-		sel.write(false);
+        sel.write(false);
 
-		wait();
+        wait();
 
-		sc_stop();
-	}
+        sc_stop();
+    }
 
-	SC_CTOR(testbench_mux2x1) {
-		SC_THREAD(test);
-		sensitive << Clk.pos();
-	}
+    SC_CTOR(testbench_mux2x1) {
+        SC_THREAD(test);
+        sensitive << Clk.pos();
+    }
 };
