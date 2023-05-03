@@ -1,116 +1,82 @@
-#include "mon.hpp"
-#include "testbench.hpp"
-#include <systemc.h>
+#include "systemc.h"
+// INCLUDE MODULES
+#include "modules/alu.h"
+#include "modules/mux2x1.h"
 
-#include "modules/alu.hpp"
-#include "modules/mux.hpp"
+// INCLUDE TESTBENCHES
+#include "testbenches/testbench_ula.h"
+#include "testbenches/testbench_mux2x1.h"
 
-void stimulus_test() {
-    sc_signal<sc_uint<32>> ASig, BSig, RESSig;
-    sc_signal<int> CMDSig;
-    sc_clock TestClk("TestClock", 10, SC_NS, 0.5);
+// INCLUDE MONITORS
+#include "monitors/monitor_ula.h"
+#include "monitors/monitor_mux2x1.h"
 
-    cmd_testbench Tb("Stimulus");
-    Tb.A(ASig);
-    Tb.B(BSig);
-    Tb.CMD(CMDSig);
-    Tb.Clk(TestClk);
 
-    alu ALU("alu");
-    ALU.A(ASig);
-    ALU.B(BSig);
-    ALU.result(RESSig);
-    ALU.command(CMDSig);
+int sc_main(int argc, char* argv[]) {
 
-    mon Monitor1("Monitor");
-    Monitor1.A(ASig);
-    Monitor1.B(BSig);
-    Monitor1.CMD(CMDSig);
-    Monitor1.RES(RESSig);
-    Monitor1.Clk(TestClk);
+	// Para a ula
+	sc_signal<sc_uint<32>> ASig, BSig, RESSig;
+	sc_signal<int> CMDSig;
 
-    //========================= waveform
-    sc_trace_file *fp;
-    fp = sc_create_vcd_trace_file("wave");
-    fp->set_time_unit(1, sc_core::SC_NS);
-    sc_trace(fp, ALU.A, "A");
-    sc_trace(fp, ALU.B, "B");
-    sc_trace(fp, TestClk, "CLK");
-    //=========================
+	// Para o mux2x1
+	sc_signal<sc_uint<32>> a, b, out;
+	sc_signal<bool> sel;
 
-    sc_close_vcd_trace_file(fp);
+	sc_clock TestClk("TestClock", 10, SC_NS, 0.5);
+
+	// COMPONENTS
+	alu Alu ("Alu");
+	Alu.A(ASig);
+	Alu.B(BSig);
+	Alu.result(RESSig);
+	Alu.command(CMDSig);
+
+	mux2x1 Mux2x1("Mux2x1");
+	Mux2x1.a(a);
+	Mux2x1.b(b);
+	Mux2x1.sel(sel);
+	Mux2x1.out(out);
+
+	// TESTBENCHES
+	//testbench_ula TbUla("TbUla");
+	//TbUla.A(ASig);
+	//TbUla.B(BSig);
+	//TbUla.CMD(CMDSig);
+	//TbUla.Clk(TestClk);
+
+	testbench_mux2x1 TbMux2x1("TbMux");
+	TbMux2x1.a(a);
+	TbMux2x1.b(b);
+	TbMux2x1.sel(sel);
+	TbMux2x1.Clk(TestClk);
+
+	// MONITORS
+	//monitor_ula MonUla("MonUla");
+	//MonUla.A(ASig);
+	//MonUla.B(BSig);
+	//MonUla.CMD(CMDSig);
+	//MonUla.RES(RESSig);
+	//MonUla.Clk(TestClk);
+
+	monitor_mux2x1 MonMux2x1("MonMux2x1");
+	MonMux2x1.a(a);
+	MonMux2x1.b(b);
+	MonMux2x1.sel(sel);
+	MonMux2x1.out(out);
+	MonMux2x1.Clk(TestClk);
+
+	// WAVEFORM
+	//sc_trace_file *fp;
+	//fp=sc_create_vcd_trace_file("wave");
+	//fp->set_time_unit(1, sc_core::SC_NS);
+	//sc_trace(fp,ALU.A,"A");
+	//sc_trace(fp,ALU.B,"B");
+	//sc_trace(fp,TestClk,"CLK");
+	//=========================
+
+	sc_start();
+
+	//sc_close_vcd_trace_file(fp);
+
+	return 0;
 }
-
-void mux_test() {
-    sc_signal<sc_uint<32>> a, b;
-    sc_signal<bool> sel;
-
-    mux_testbench tb("mux testbench");
-    tb.a(a);
-    tb.b(b);
-    tb.sel(sel);
-
-    mux2x1 mux("mux 2x1");
-    mux.a(a);
-    mux.b(b);
-    mux.sel(sel);
-
-    //========================= waveform
-    sc_trace_file *fp;
-    fp = sc_create_vcd_trace_file("wave");
-    fp->set_time_unit(1, sc_core::SC_NS);
-    sc_trace(fp, mux.a, "A");
-    sc_trace(fp, mux.b, "B");
-    sc_trace(fp, mux.sel, "SEL");
-    //=========================
-
-    sc_start();
-
-    sc_close_vcd_trace_file(fp);
-}
-
-int sc_main(int argc, char *argv[]) {
-    stimulus_test();
-
-    return 0;
-}
-
-// int sc_main(int argc, char* argv[]) {
-//
-//      sc_signal<bool> ASig, BSig, SSig, COSig;
-//      sc_clock TestClk("TestClock", 10, SC_NS, 0.5);
-//
-//      testbench Tb("Stimulus");
-//      Tb.A(ASig);
-//      Tb.B(BSig);
-//      Tb.Clk(TestClk);
-//
-//      adder Somador("adder");
-//      Somador.A(ASig);
-//      Somador.B(BSig);
-//      Somador.S(SSig);
-//      Somador.CO(COSig);
-//
-//      mon Monitor1("Monitor");
-//      Monitor1.A(ASig);
-//      Monitor1.B(BSig);
-//      Monitor1.S(SSig);
-//      Monitor1.CO(COSig);
-//      Monitor1.Clk(TestClk);
-//
-//      //========================= waveform
-//      sc_trace_file *fp;
-//      fp=sc_create_vcd_trace_file("wave");
-//      fp->set_time_unit(1, sc_core::SC_NS);
-//      sc_trace(fp,Somador.A,"A");
-//      sc_trace(fp,Somador.B,"B");
-//      sc_trace(fp,Somador.CO,"CO");
-//      sc_trace(fp,TestClk,"CLK");
-//      //=========================
-//
-//      sc_start();
-//
-//      sc_close_vcd_trace_file(fp);
-//
-//      return 0;
-// }
