@@ -1,10 +1,11 @@
+#include "definitions.hpp"
 #include "systemc.h"
 
 SC_MODULE(alu) {
-    sc_in<sc_uint<32>> A, B;
-    sc_in<int> command; // switch case don't allow sc_uint
-    sc_out<sc_uint<32>> result;
-    // sc_out<bool> ZERO;
+    sc_in<WORD> A, B;
+    sc_in<int> command; // switch case doesn't allow sc_uint
+    sc_out<WORD> result;
+    sc_out<bool> zero;
 
     void process() {
         switch (command) {

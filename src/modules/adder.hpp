@@ -1,8 +1,9 @@
+#include "definitions.hpp"
 #include "systemc.h"
 
 SC_MODULE(adder) {
-    sc_in<sc_uint<32>> A, B;
-    sc_out<sc_uint<32>> S;
+    sc_in<WORD> A, B;
+    sc_out<WORD> S;
 
     void add() { S.write(A.read() + B.read()); }
 
