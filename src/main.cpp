@@ -1,4 +1,5 @@
 #include "systemc.h"
+
 // INCLUDE MODULES
 #include "modules/alu.hpp"
 #include "modules/mux2x1.hpp"

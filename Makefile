@@ -4,7 +4,7 @@ include ./Makefile.config
 
 # project settings
 PROJECT := mips
-SRCS    := $(wildcard *.cpp)
+SRCS    := $(wildcard src/*.cpp)
 OBJS    := $(SRCS:.cpp=.o)
 
 # default compiler flags
@@ -27,8 +27,7 @@ ARCH_SUFFIX ?= -$(TARGET_ARCH)
 SYSTEMC_INC_DIR ?= $(SYSTEMC_HOME)/include
 
 # explicit location if the systenc library
-#SYSTEMC_LIB_DIR ?= $(SYSTEMC_HOME)/lib$(ARCH_SUFFIX)
-SYSTEMC_LIB_DIR ?= $(SYSTEMC_HOME)/lib
+SYSTEMC_LIB_DIR ?= $(SYSTEMC_HOME)/lib$(ARCH_SUFFIX)
 
 # combined flags
 SYSTEMC_CXXFLAGS = $(FLAGS_COMMON) $(FLAGS_STRICT) $(FLAGS_WERROR)
@@ -61,6 +60,8 @@ run: all
 build: $(PROJECT)
 
 $(PROJECT): $(OBJS)
+	@echo $(SRCS)
+	@echo $(OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(LIBS) 2>&1
 
 .cpp.o:
