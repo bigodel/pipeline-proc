@@ -8,23 +8,40 @@ SC_MODULE(alu) {
     sc_out<bool> zero;
 
     void process() {
-        switch (command) {
-        case 0: // AND
-            result.write(A.read() && B.read());
+        WORD a = A.read();
+        WORD b = B.read();
+        bool is_zero;
+        WORD output;
+
+        switch (command.read()) {
+        case 0b000: // AND
+            output = a & b;
+            is_zero = output == 0;
             break;
-        case 1: // OR
-            result.write(A.read() || B.read());
+        case 0b001: // OR
+            output = a | b;
+            is_zero = output == 0;
             break;
-        case 2: // ADD
-            result.write(A.read() + B.read());
+        case 0b010: // ADD
+            output = a + b;
+            is_zero = output == 0;
             break;
-        case 3: // SUB
-            result.write(A.read() - B.read());
+        case 0b011: // SUB
+            output = a - b;
+            is_zero = output == 0;
             break;
-        default: // Set-on-less-than
-            result.write(A.read() < B.read());
+        case 0b100: // SLT
+            output = a < b;
+            is_zero = output == 0;
+            break;
+        default:
+            output = 0;
+            is_zero = true;
             break;
         }
+
+        result.write(output);
+        zero.write(is_zero);
     }
 
     SC_CTOR(alu) {
