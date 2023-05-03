@@ -10,7 +10,7 @@ modules:
 - [X] ALU (Arithmetic Logic Unit): It performs arithmetic and logical operations
   on data.
 
-- [ ] Data Memory (DM): It stores data used by the program and provides read and
+- [X] Data Memory (DM): It stores data used by the program and provides read and
   write access to it.
 
 - [ ] Control Unit (CU): It generates control signals based on the current
