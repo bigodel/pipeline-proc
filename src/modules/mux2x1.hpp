@@ -1,5 +1,5 @@
 #include "definitions.hpp"
-#include <systemc.h>
+#include "systemc.h"
 
 SC_MODULE(mux2x1) {
     sc_in<bool> sel;

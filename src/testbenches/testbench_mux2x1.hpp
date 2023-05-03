@@ -1,5 +1,5 @@
 #include "definitions.hpp"
-#include <systemc.h>
+#include "systemc.h"
 
 SC_MODULE(testbench_mux2x1) {
     sc_out<WORD> a, b;
