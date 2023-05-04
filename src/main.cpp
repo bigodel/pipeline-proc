@@ -3,6 +3,7 @@
 // INCLUDE MODULES
 #include "modules/alu.hpp"
 #include "modules/mux2x1.hpp"
+#include "modules/instruction_memory.hpp"
 
 // INCLUDE TESTBENCHES
 #include "testbenches/testbench_alu.hpp"
