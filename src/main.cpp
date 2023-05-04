@@ -6,6 +6,7 @@
 #include "modules/alu.hpp"
 #include "modules/mux2x1.hpp"
 #include "modules/instruction_memory.hpp"
+#include "modules/data_memory.hpp"
 
 // INCLUDE TESTBENCHES
 #include "testbenches/testbench_alu.hpp"
@@ -32,9 +33,15 @@ int sc_main(int argc, char* argv[]) {
     sc_signal<int> addressIM;
     sc_signal<inst> instructionIM;
 
-    sc_clock TestClk("TestClock", 10, SC_NS, 0.5);
+    // data_memory
+    sc_signal<int> addressDM, input_dataDM, dataDM;
+    sc_signal<bool> enableDM;
 
-    // COMPONENTS
+    // ### CLOCK ###
+    sc_clock Clock("Clock", 10, SC_NS, 0.5);
+
+    // ### COMPONENTS ###
+
     alu Alu ("Alu");
     Alu.A(ASig);
     Alu.B(BSig);
@@ -51,20 +58,50 @@ int sc_main(int argc, char* argv[]) {
     InstructionMemory.address(addressIM);
     InstructionMemory.instruction(instructionIM);
 
+    data_memory DataMemory("DataMemory");
+    DataMemory.address(addressDM);
+    DataMemory.input_data(input_dataDM);
+    DataMemory.enable(enableDM);
+    DataMemory.data(dataDM);
 
-    // # READ INSTRUCTION FILE #
+    // # READ DATA FILE AND LOAD INTO DATA MEMORY #
     fstream instFs;
 
-    instFs.open("instruction.in");
+    instFs.open("data.in");
+
+    // Checks if the file was found
     if(!instFs) {
         cerr << "Error: file could not be opened" << endl;
         return 1;
     }
 
-    
+    // Loads all instructions into the memory
+    int address = 0;
+    while (instFs >> address) {
+        instFs >> DataMemory.mem[address];
+    }
+    instFs.close();
 
+    // Prints all loaded instructions
+    for (int j = 0; j < 10; j++)
+        cout << DataMemory.mem[j] << endl;
+
+
+
+
+    // # READ INSTRUCTION FILE AND LOAD INTO INSTRUCTION MEMORY #
+    instFs.open("instruction.in");
+
+    // Checks if the file was found
+    if(!instFs) {
+        cerr << "Error: file could not be opened" << endl;
+        return 1;
+    }
+
+    // Loads all instructions into the memory
     int i = 0;
-    while (instFs >> InstructionMemory.mem[i].opCode) {
+    while (instFs >> InstructionMemory.mem[i].opCode) { // Checks if there is a instruction name in the line
+        // If so, get all the registers address
         instFs >> InstructionMemory.mem[i].regStart;
         instFs >> InstructionMemory.mem[i].regTerm;
         instFs >> InstructionMemory.mem[i].regDest;
@@ -72,6 +109,7 @@ int sc_main(int argc, char* argv[]) {
     }
     instFs.close();
 
+    // Prints all loaded instructions
     for (int j = 0; j < i; j++) {
         cout << InstructionMemory.mem[j] << endl;
     }
@@ -81,13 +119,13 @@ int sc_main(int argc, char* argv[]) {
     //TbUla.A(ASig);
     //TbUla.B(BSig);
     //TbUla.CMD(CMDSig);
-    //TbUla.Clk(TestClk);
+    //TbUla.Clk(Clock);
 
     //testbench_mux2x1 TbMux2x1("TbMux");
     //TbMux2x1.a(a);
     //TbMux2x1.b(b);
     //TbMux2x1.sel(sel);
-    //TbMux2x1.Clk(TestClk);
+    //TbMux2x1.Clk(Clock);
 
     // ### MONITORS ###
     //monitor_ula MonUla("MonUla");
@@ -95,14 +133,14 @@ int sc_main(int argc, char* argv[]) {
     //MonUla.B(BSig);
     //MonUla.CMD(CMDSig);
     //MonUla.RES(RESSig);
-    //MonUla.Clk(TestClk);
+    //MonUla.Clk(Clock);
 
     //monitor_mux2x1 MonMux2x1("MonMux2x1");
     //MonMux2x1.a(a);
     //MonMux2x1.b(b);
     //MonMux2x1.sel(sel);
     //MonMux2x1.out(out);
-    //MonMux2x1.Clk(TestClk);
+    //MonMux2x1.Clk(Clock);
 
     // WAVEFORM
     //sc_trace_file *fp;
@@ -110,7 +148,7 @@ int sc_main(int argc, char* argv[]) {
     //fp->set_time_unit(1, sc_core::SC_NS);
     //sc_trace(fp,ALU.A,"A");
     //sc_trace(fp,ALU.B,"B");
-    //sc_trace(fp,TestClk,"CLK");
+    //sc_trace(fp,Clock,"CLK");
     //=========================
 
     sc_start();

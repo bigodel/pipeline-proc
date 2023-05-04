@@ -2,18 +2,20 @@
 #include "definitions.hpp"
 
 SC_MODULE(data_memory) {
-    sc_in<WORD> address;     // input: memory address
-    sc_in<WORD> input_data;  // input: data to be written
+    sc_in<int> address;     // input: mem address
+    sc_in<int> input_data;  // input: data to be written
     sc_in<bool> enable;      // input: write enable signal
-    sc_out<WORD> data;       // output: input_data read from memory
+    sc_out<int> data;       // output: input_data read from mem
 
-    WORD memory[4096] = {0}; // 4KB memory, initialized to 0
+
+    // The first value must always be zero
+    int mem[10] = {0};
 
     void read_write() {
         if (enable)
-            memory[address.read()] = input_data.read();
-
-        data.write(memory[address.read()]);
+            mem[address.read()] = input_data.read();
+        else
+            data.write(mem[address.read()]);
     }
 
     SC_CTOR(data_memory) {
