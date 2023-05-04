@@ -1,5 +1,7 @@
 #include "systemc.h"
 
+#include <fstream>
+
 // INCLUDE MODULES
 #include "modules/alu.hpp"
 #include "modules/mux2x1.hpp"
@@ -16,13 +18,19 @@
 
 int sc_main(int argc, char* argv[]) {
 
-    // Para a ula
+    // ### SIGNALS (WIRES)
+
+    // ula
     sc_signal<sc_uint<32>> ASig, BSig, RESSig;
     sc_signal<int> CMDSig;
 
-    // Para o mux2x1
+    // mux2x1
     sc_signal<sc_uint<32>> a, b, out;
     sc_signal<bool> sel;
+
+    // instuction_memory
+    sc_signal<int> addressIM;
+    sc_signal<inst> instructionIM;
 
     sc_clock TestClk("TestClock", 10, SC_NS, 0.5);
 
@@ -39,20 +47,48 @@ int sc_main(int argc, char* argv[]) {
     Mux2x1.sel(sel);
     Mux2x1.out(out);
 
-    // TESTBENCHES
+    instruction_memory InstructionMemory("InstructionMemory");
+    InstructionMemory.address(addressIM);
+    InstructionMemory.instruction(instructionIM);
+
+
+    // # READ INSTRUCTION FILE #
+    fstream instFs;
+
+    instFs.open("instruction.in");
+    if(!instFs) {
+        cerr << "Error: file could not be opened" << endl;
+        return 1;
+    }
+
+    instFs >> InstructionMemory.mem[1].opCode;
+    instFs >> InstructionMemory.mem[1].regStart;
+    instFs >> InstructionMemory.mem[1].regTerm;
+    instFs >> InstructionMemory.mem[1].regDest;
+
+    //while ( !indata.eof() ) { // keep reading until end-of-file
+    //    cout << "The next number is " << num << endl;
+    //    indata >> num; // sets EOF flag if no value found
+    //}
+    instFs.close();
+
+    cout << InstructionMemory.mem[0] << endl;
+    cout << InstructionMemory.mem[1] << endl;
+
+    // ### TESTBENCHES ###
     //testbench_ula TbUla("TbUla");
     //TbUla.A(ASig);
     //TbUla.B(BSig);
     //TbUla.CMD(CMDSig);
     //TbUla.Clk(TestClk);
 
-    testbench_mux2x1 TbMux2x1("TbMux");
-    TbMux2x1.a(a);
-    TbMux2x1.b(b);
-    TbMux2x1.sel(sel);
-    TbMux2x1.Clk(TestClk);
+    //testbench_mux2x1 TbMux2x1("TbMux");
+    //TbMux2x1.a(a);
+    //TbMux2x1.b(b);
+    //TbMux2x1.sel(sel);
+    //TbMux2x1.Clk(TestClk);
 
-    // MONITORS
+    // ### MONITORS ###
     //monitor_ula MonUla("MonUla");
     //MonUla.A(ASig);
     //MonUla.B(BSig);
@@ -60,12 +96,12 @@ int sc_main(int argc, char* argv[]) {
     //MonUla.RES(RESSig);
     //MonUla.Clk(TestClk);
 
-    monitor_mux2x1 MonMux2x1("MonMux2x1");
-    MonMux2x1.a(a);
-    MonMux2x1.b(b);
-    MonMux2x1.sel(sel);
-    MonMux2x1.out(out);
-    MonMux2x1.Clk(TestClk);
+    //monitor_mux2x1 MonMux2x1("MonMux2x1");
+    //MonMux2x1.a(a);
+    //MonMux2x1.b(b);
+    //MonMux2x1.sel(sel);
+    //MonMux2x1.out(out);
+    //MonMux2x1.Clk(TestClk);
 
     // WAVEFORM
     //sc_trace_file *fp;
