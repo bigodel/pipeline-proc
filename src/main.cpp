@@ -61,19 +61,20 @@ int sc_main(int argc, char* argv[]) {
         return 1;
     }
 
-    instFs >> InstructionMemory.mem[1].opCode;
-    instFs >> InstructionMemory.mem[1].regStart;
-    instFs >> InstructionMemory.mem[1].regTerm;
-    instFs >> InstructionMemory.mem[1].regDest;
+    
 
-    //while ( !indata.eof() ) { // keep reading until end-of-file
-    //    cout << "The next number is " << num << endl;
-    //    indata >> num; // sets EOF flag if no value found
-    //}
+    int i = 0;
+    while (instFs >> InstructionMemory.mem[i].opCode) {
+        instFs >> InstructionMemory.mem[i].regStart;
+        instFs >> InstructionMemory.mem[i].regTerm;
+        instFs >> InstructionMemory.mem[i].regDest;
+        i++;
+    }
     instFs.close();
 
-    cout << InstructionMemory.mem[0] << endl;
-    cout << InstructionMemory.mem[1] << endl;
+    for (int j = 0; j < i; j++) {
+        cout << InstructionMemory.mem[j] << endl;
+    }
 
     // ### TESTBENCHES ###
     //testbench_ula TbUla("TbUla");
