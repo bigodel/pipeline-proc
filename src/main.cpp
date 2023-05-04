@@ -3,7 +3,7 @@
 #include <fstream>
 
 // INCLUDE MODULES
-#include "modules/alu.hpp"
+//#include "modules/alu.hpp"
 #include "modules/mux2x1.hpp"
 #include "modules/instruction_memory.hpp"
 #include "modules/data_memory.hpp"
@@ -19,11 +19,10 @@
 
 int sc_main(int argc, char* argv[]) {
 
-    // ### SIGNALS (WIRES)
+    // ### SIGNALS (WIRES) ###
 
-    // ula
-    sc_signal<sc_uint<32>> ASig, BSig, RESSig;
-    sc_signal<int> CMDSig;
+    //// ula
+    sc_signal<int> regStartSig, regTermSig, opCodeSig, regDestSig;
 
     // mux2x1
     sc_signal<sc_uint<32>> a, b, out;
@@ -42,11 +41,11 @@ int sc_main(int argc, char* argv[]) {
 
     // ### COMPONENTS ###
 
-    alu Alu ("Alu");
-    Alu.A(ASig);
-    Alu.B(BSig);
-    Alu.result(RESSig);
-    Alu.command(CMDSig);
+    //alu Alu ("Alu");
+    //Alu.regStart(regStartSig);
+    //Alu.regTerm(regTermSig);
+    //Alu.opCode(opCodeSig);
+    //Alu.regDest(regDestSig);
 
     mux2x1 Mux2x1("Mux2x1");
     Mux2x1.a(a);
@@ -86,9 +85,6 @@ int sc_main(int argc, char* argv[]) {
     for (int j = 0; j < 10; j++)
         cout << DataMemory.mem[j] << endl;
 
-
-
-
     // # READ INSTRUCTION FILE AND LOAD INTO INSTRUCTION MEMORY #
     instFs.open("instruction.in");
 
@@ -100,7 +96,24 @@ int sc_main(int argc, char* argv[]) {
 
     // Loads all instructions into the memory
     int i = 0;
-    while (instFs >> InstructionMemory.mem[i].opCode) { // Checks if there is a instruction name in the line
+    string opCodeName = "";
+    // Checks if there is a instruction opCode in the line
+    while (instFs >> opCodeName) {
+        if(opCodeName == "AND")
+            InstructionMemory.mem[i] = 0;
+        else if(opCodeName == "OR")
+            InstructionMemory.mem[i] = 1;
+        else if(opCodeName == "XOR")
+            InstructionMemory.mem[i] = 2;
+        else if(opCodeName == "NOT")
+            InstructionMemory.mem[i] = 3;
+        else if(opCodeName == "CMP")
+            InstructionMemory.mem[i] = 4;
+        else if(opCodeName == "ADD")
+            InstructionMemory.mem[i] = 5;
+        else if(opCodeName == "SUB")
+            InstructionMemory.mem[i] = 6;
+
         // If so, get all the registers address
         instFs >> InstructionMemory.mem[i].regStart;
         instFs >> InstructionMemory.mem[i].regTerm;
@@ -110,9 +123,8 @@ int sc_main(int argc, char* argv[]) {
     instFs.close();
 
     // Prints all loaded instructions
-    for (int j = 0; j < i; j++) {
+    for (int j = 0; j < i; j++)
         cout << InstructionMemory.mem[j] << endl;
-    }
 
     // ### TESTBENCHES ###
     //testbench_ula TbUla("TbUla");

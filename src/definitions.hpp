@@ -9,12 +9,12 @@ using namespace std;
 
 // INSTRUCTION TYPE
 struct inst {
-    string opCode;
+    int opCode;
     int regStart, regTerm, regDest;
 
     // Constructor
-    inst(string opCode = "", int regStart = 0, int regTerm = 0, int regDest = 0) 
-        : opCode(opCode), regStart(regStart), regTerm(regTerm), regDest(regDest) {}
+    inst(int opCode = 0, int regStart = 0, int regTerm = 0, int regDest = 0) 
+    : opCode(opCode), regStart(regStart), regTerm(regTerm), regDest(regDest) {}
 
     // Assignment operator, needed for read() write()
     inst& operator=(const inst& rhs) { 
@@ -28,9 +28,9 @@ struct inst {
     // Equality operator, needed for value_changed_event()
     bool operator==(const inst& rhs) { 
         return opCode == rhs.opCode &&
-            regStart == rhs.regStart &&
-            regTerm == rhs.regTerm &&
-            regDest == rhs.regDest;
+        regStart == rhs.regStart &&
+        regTerm == rhs.regTerm &&
+        regDest == rhs.regDest;
     }
 };
 
@@ -46,7 +46,7 @@ std::ostream& operator<<(std::ostream& os, const inst& val) {
 // TODO: fix stirng tracing
 // Needed for tracing
 inline void sc_trace(sc_trace_file*& f, const inst& val, std::string name) { 
-    //sc_trace(f, val.opCode, name + ".opCode");
+    sc_trace(f, val.opCode, name + ".opCode");
     sc_trace(f, val.regStart, name + ".regStart");
     sc_trace(f, val.regTerm, name + ".regTerm");
     sc_trace(f, val.regDest, name + ".regDest");

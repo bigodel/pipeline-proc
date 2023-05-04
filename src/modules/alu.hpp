@@ -2,41 +2,38 @@
 #include "systemc.h"
 
 SC_MODULE(alu) {
-    sc_in<WORD> A, B;
-    sc_in<int> command; // switch case doesn't allow sc_uint
-    sc_out<WORD> result;
+    sc_in<int> regStart, regTerm;
+    sc_in<int> opCode;
+    sc_out<int> regDest;
 
     void process() {
-        WORD a = A.read();
-        WORD b = B.read();
-        WORD output;
-
-        switch (command.read()) {
-        case 0b000: // AND
-            output = a & b;
-            break;
-        case 0b001: // OR
-            output = a | b;
-            break;
-        case 0b010: // ADD
-            output = a + b;
-            break;
-        case 0b011: // SUB
-            output = a - b;
-            break;
-        case 0b100: // SLT
-            output = a < b;
-            break;
-        default:
-            output = 0;
-            break;
+        switch (opCode.read()) {
+            case 0: // AND
+                regDest.write(regStart.read() && regTerm.read());
+                break;
+            case 1: // OR
+                regDest.write(regStart.read() || regTerm.read());
+                break;
+            case 2: // XOR
+                regDest.write(regStart.read() ^ regTerm.read());
+                break;
+            case 3: // NOT
+                regDest.write(~regStart.read());
+                break;
+            case 4: // CMP
+                regDest.write(regStart.read() == regTerm.read());
+                break;
+            case 5: // ADD
+                regDest.write(regStart.read() + regTerm.read());
+                break;
+            case 6: // SUB
+                regDest.write(regStart.read() - regTerm.read());
+                break;
         }
-
-        result.write(output);
     }
 
     SC_CTOR(alu) {
         SC_METHOD(process);
-        sensitive << A << B << command;
+        sensitive << regStart << regTerm << opCode;
     }
 };
