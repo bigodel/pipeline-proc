@@ -1,10 +1,11 @@
 #include "systemc.h"
+#include "definitions.hpp"
 #include <iomanip>
 
 using namespace std;
 
 SC_MODULE(monitor_alu) {
-    sc_in<sc_uint<32>> A,B, RES;
+    sc_in<WORD> A,B, RES;
     sc_in<int> CMD;
     sc_in<bool> Clk;
 

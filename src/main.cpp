@@ -16,11 +16,11 @@
 int sc_main(int argc, char* argv[]) {
 
     // Para a ula
-    sc_signal<sc_uint<32>> ASig, BSig, RESSig;
+    sc_signal<WORD> ASig, BSig, RESSig;
     sc_signal<int> CMDSig;
 
     // Para o mux2x1
-    sc_signal<sc_uint<32>> a, b, out;
+    sc_signal<WORD> a, b, out;
     sc_signal<bool> sel;
 
     sc_clock TestClk("TestClock", 10, SC_NS, 0.5);

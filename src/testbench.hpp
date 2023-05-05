@@ -1,7 +1,8 @@
+#include "definitions.hpp"
 #include "systemc.h"
 
 SC_MODULE(mux_testbench) {
-    sc_out<sc_uint<32>> a, b;
+    sc_out<WORD> a, b;
     sc_out<bool> sel;
 
     void test() {
@@ -20,7 +21,7 @@ SC_MODULE(mux_testbench) {
 };
 
 SC_MODULE(cmd_testbench) {
-    sc_out<sc_uint<32>> A, B;
+    sc_out<WORD> A, B;
     sc_out<int> CMD;
     sc_in<bool> Clk;
 

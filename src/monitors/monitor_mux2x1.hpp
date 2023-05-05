@@ -1,10 +1,11 @@
 #include "systemc.h"
+#include "definitions.hpp"
 #include <iomanip>
 
 using namespace std;
 
 SC_MODULE(monitor_mux2x1) {
-    sc_in<sc_uint<32>> a, b, out;
+    sc_in<WORD> a, b, out;
     sc_in<bool> Clk;
     sc_in<bool> sel;
 
