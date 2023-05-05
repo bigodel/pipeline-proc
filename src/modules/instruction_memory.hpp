@@ -5,7 +5,7 @@ SC_MODULE(instruction_memory) {
     sc_in<int> address;
     sc_out<int> opCode, regRead1, regRead2, regWrite;
 
-    inst memory[INST_COUNT] = {{0, 0, 0, 0}};
+    inst memory[INST_COUNT] = {{9, 9, 9, 9}};
 
     void read() { 
         opCode.write(memory[address.read()].opCode); 

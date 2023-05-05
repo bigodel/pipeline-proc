@@ -6,9 +6,9 @@
 #include "modules/alu.hpp"
 #include "modules/mux2x1.hpp"
 #include "modules/instruction_memory.hpp"
-//#include "modules/register_bank.hpp"
 #include "modules/data_memory.hpp"
 #include "modules/program_counter.hpp"
+#include "modules/gi_gd_register.hpp"
 
 // INCLUDE TESTBENCHES
 #include "testbenches/testbench_alu.hpp"
@@ -44,14 +44,17 @@ int sc_main(int argc, char* argv[]) {
     // program_counter to instruction_memory (PI)
     sc_signal<int> addressPI;
 
-    // instruction_memory to data_memory (ID)
-    sc_signal<int> regRead1ID, regRead2ID, regWriteID;
+    // instruction_memory to gi_gd_register (IGI)
+    sc_signal<int> regRead1IGI, regRead2IGI, regWriteIGI, opCodeIGI;
+
+    // gi_gd_register ot data_memory (GID)
+    sc_signal<int> regRead1GID, regRead2GID, regWriteGID;
 
     // data_memory to alu (DA)
     sc_signal<int> dataRead1DA, dataRead2DA;
 
-    // instruction_memory to alu (IA)
-    sc_signal<int> opCodeIA;
+    // gi_gd_register to alu (GIA)
+    sc_signal<int> opCodeGIA;
 
     // alu to data_memory (AD)
     sc_signal<int> dataWriteAD;
@@ -71,16 +74,29 @@ int sc_main(int argc, char* argv[]) {
     //  -- Input --
     InstructionMemory.address(addressPI);
     //  -- OutPut --
-    InstructionMemory.opCode(opCodeIA);
-    InstructionMemory.regRead1(regRead1ID);
-    InstructionMemory.regRead2(regRead2ID);
-    InstructionMemory.regWrite(regWriteID);
+    InstructionMemory.opCode(opCodeIGI);
+    InstructionMemory.regRead1(regRead1IGI);
+    InstructionMemory.regRead2(regRead2IGI);
+    InstructionMemory.regWrite(regWriteIGI);
+
+    gi_gd_register GIGDRegister("GIGDRegister");
+    //  -- Input --
+    GIGDRegister.clock(clock);
+    GIGDRegister.opCodeIn(opCodeIGI);
+    GIGDRegister.regRead1In(regRead1IGI);
+    GIGDRegister.regRead2In(regRead2IGI);
+    GIGDRegister.regWriteIn(regWriteIGI);
+    //  -- OutPut --
+    GIGDRegister.opCodeOut(opCodeGIA);
+    GIGDRegister.regRead1Out(regRead1GID);
+    GIGDRegister.regRead2Out(regRead2GID);
+    GIGDRegister.regWriteOut(regWriteGID);
 
     data_memory DataMemory("DataMemory");
     //  -- Input --
-    DataMemory.regRead1(regRead1ID);
-    DataMemory.regRead2(regRead2ID);
-    DataMemory.regWrite(regWriteID);
+    DataMemory.regRead1(regRead1GID);
+    DataMemory.regRead2(regRead2GID);
+    DataMemory.regWrite(regWriteGID);
     DataMemory.dataWrite(dataWriteAD);
     //  -- OutPut --
     DataMemory.dataRead1(dataRead1DA);
@@ -88,7 +104,7 @@ int sc_main(int argc, char* argv[]) {
 
     alu Alu ("Alu");
     //  -- Input --
-    Alu.opCode(opCodeIA);
+    Alu.opCode(opCodeGIA);
     Alu.dataRead1(dataRead1DA);
     Alu.dataRead2(dataRead2DA);
     //  -- OutPut --
@@ -112,10 +128,6 @@ int sc_main(int argc, char* argv[]) {
         instFs >> DataMemory.memory[dest];
     }
     instFs.close();
-
-    // Prints all loaded instructions
-    for (int j = 0; j < 10; j++)
-        cout << DataMemory.memory[j] << endl;
 
     //  # READ INSTRUCTION FILE AND LOAD INTO INSTRUCTION MEMORY #
     instFs.open("instruction.in");
@@ -155,14 +167,8 @@ int sc_main(int argc, char* argv[]) {
     }
     instFs.close();
 
-    // Prints all loaded instructions
-    for (int j = 0; j < i; j++)
-        cout << InstructionMemory.memory[j] << endl;
-
-
     testbench TestBench("TestBench");
     TestBench.clock(clock);
-
 
     // ### TESTBENCHES ###
     //testbench_ula TbUla("TbUla");
@@ -199,19 +205,31 @@ int sc_main(int argc, char* argv[]) {
 
     sc_trace(fp, clock, "clock");
 
-    sc_trace(fp,InstructionMemory.address,"address");
+    //sc_trace(fp,InstructionMemory.address,"address");
     //sc_trace(fp,InstructionMemory.opCode,"opCode");
     //sc_trace(fp,InstructionMemory.regRead1,"regRead1");
     //sc_trace(fp,InstructionMemory.regRead2,"regRead2");
     //sc_trace(fp,InstructionMemory.regWrite,"regWrite");
 
-    sc_trace(fp, DataMemory.regRead1, "regRead1");
-    sc_trace(fp, DataMemory.regRead2, "regRead2");
-    sc_trace(fp, DataMemory.regWrite, "regWrite");
+    //sc_trace(fp, DataMemory.regRead1, "regRead1");
+    //sc_trace(fp, DataMemory.regRead2, "regRead2");
+    //sc_trace(fp, DataMemory.regWrite, "regWrite");
     sc_trace(fp, DataMemory.dataWrite, "dataWrite");
 
-    sc_trace(fp, DataMemory.dataRead1, "dataRead1");
-    sc_trace(fp, DataMemory.dataRead2, "dataRead2");
+    //sc_trace(fp, DataMemory.dataRead1, "dataRead1");
+    //sc_trace(fp, DataMemory.dataRead2, "dataRead2");
+
+    //sc_trace(fp, GIGDRegister.clock, "clock");
+    sc_trace(fp, GIGDRegister.opCodeIn, "opCodeIGI");
+    sc_trace(fp, GIGDRegister.regRead1In, "regRead1IGI");
+    sc_trace(fp, GIGDRegister.regRead2In, "regRead2IGI");
+    sc_trace(fp, GIGDRegister.regWriteIn, "regWriteIGI");
+
+    sc_trace(fp, GIGDRegister.opCodeOut, "opCodeGIA");
+    sc_trace(fp, GIGDRegister.regRead1Out, "regRead1GID");
+    sc_trace(fp, GIGDRegister.regRead2Out, "regRead2GID");
+    sc_trace(fp, GIGDRegister.regWriteOut, "regWriteGID");
+
 
     sc_start();
 
