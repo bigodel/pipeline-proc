@@ -2,37 +2,37 @@
 #include "systemc.h"
 
 SC_MODULE(alu) {
-    sc_in<int> start, term, opCode;
-    sc_out<int> result;
+    sc_in<int> dataRead1, dataRead2, opCode;
+    sc_out<int> dataWrite;
 
     void process() {
         switch (opCode.read()) {
             case 0: // AND
-                result.write(start.read() && term.read());
+                dataWrite.write(dataRead1.read() && dataRead2.read());
                 break;
             case 1: // OR
-                result.write(start.read() || term.read());
+                dataWrite.write(dataRead1.read() || dataRead2.read());
                 break;
             case 2: // XOR
-                result.write(start.read() ^ term.read());
+                dataWrite.write(dataRead1.read() ^ dataRead2.read());
                 break;
             case 3: // NOT
-                result.write(~start.read());
+                dataWrite.write(~dataRead1.read());
                 break;
             case 4: // CMP
-                result.write(start.read() == term.read());
+                dataWrite.write(dataRead1.read() == dataRead2.read());
                 break;
             case 5: // ADD
-                result.write(start.read() + term.read());
+                dataWrite.write(dataRead1.read() + dataRead2.read());
                 break;
             case 6: // SUB
-                result.write(start.read() - term.read());
+                dataWrite.write(dataRead1.read() - dataRead2.read());
                 break;
         }
     }
 
     SC_CTOR(alu) {
         SC_METHOD(process);
-        sensitive << start << term << opCode;
+        sensitive << dataRead1 << dataRead2 << opCode;
     }
 };

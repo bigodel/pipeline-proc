@@ -9,36 +9,36 @@ using namespace std;
 
 // INSTRUCTION TYPE
 struct inst {
-    int opCode, regStart, regTerm, regDest;
+    int opCode, regRead1, regRead2, regWrite;
 
     // Constructor
-    inst(int opCode = 0, int regStart = 0, int regTerm = 0, int regDest = 0) 
-    : opCode(opCode), regStart(regStart), regTerm(regTerm), regDest(regDest) {}
+    inst(int opCode = 0, int regRead1 = 0, int regRead2 = 0, int regWrite = 0) 
+    : opCode(opCode), regRead1(regRead1), regRead2(regRead2), regWrite(regWrite) {}
 
     // Assignment operator, needed for read() write()
     inst& operator=(const inst& rhs) { 
         opCode = rhs.opCode;
-        regStart = rhs.regStart;
-        regTerm = rhs.regTerm;
-        regDest = rhs.regDest;
+        regRead1 = rhs.regRead1;
+        regRead2 = rhs.regRead2;
+        regWrite = rhs.regWrite;
         return *this;
     }
 
     // Equality operator, needed for value_changed_event()
     bool operator==(const inst& rhs) { 
         return opCode == rhs.opCode &&
-        regStart == rhs.regStart &&
-        regTerm == rhs.regTerm &&
-        regDest == rhs.regDest;
+        regRead1 == rhs.regRead1 &&
+        regRead2 == rhs.regRead2 &&
+        regWrite == rhs.regWrite;
     }
 };
 
 // Streaming output, needed for printing
 std::ostream& operator<<(std::ostream& os, const inst& val) {
     os << "opCode = " << val.opCode <<
-        "; regStart = " << val.regStart <<
-        "; regTerm = " << val.regTerm << 
-        "; regDest = " << val.regDest << endl;
+        "; regRead1 = " << val.regRead1 <<
+        "; regRead2 = " << val.regRead2 << 
+        "; regWrite = " << val.regWrite << endl;
     return os;
 }
 
@@ -46,9 +46,9 @@ std::ostream& operator<<(std::ostream& os, const inst& val) {
 // Needed for tracing
 inline void sc_trace(sc_trace_file*& f, const inst& val, std::string name) { 
     sc_trace(f, val.opCode, name + ".opCode");
-    sc_trace(f, val.regStart, name + ".regStart");
-    sc_trace(f, val.regTerm, name + ".regTerm");
-    sc_trace(f, val.regDest, name + ".regDest");
+    sc_trace(f, val.regRead1, name + ".regRead1");
+    sc_trace(f, val.regRead2, name + ".regRead2");
+    sc_trace(f, val.regWrite, name + ".regWrite");
 }
 
 #endif /* DEFINITIONS_H */

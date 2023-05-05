@@ -6,6 +6,7 @@
 #include "modules/alu.hpp"
 #include "modules/mux2x1.hpp"
 #include "modules/instruction_memory.hpp"
+//#include "modules/register_bank.hpp"
 #include "modules/data_memory.hpp"
 #include "modules/program_counter.hpp"
 
@@ -40,59 +41,59 @@ int sc_main(int argc, char* argv[]) {
     sc_clock clock("clock", 10, SC_NS, 0.5);
 
     //          ### SIGNALS (WIRES) ###
+    // program_counter to instruction_memory (PI)
+    sc_signal<int> addressPI;
 
     // instruction_memory to data_memory (ID)
-    sc_signal<int> regIndexStartID, regIndexTermID, regIndexDestID;
+    sc_signal<int> regRead1ID, regRead2ID, regWriteID;
+
+    // data_memory to alu (DA)
+    sc_signal<int> dataRead1DA, dataRead2DA;
 
     // instruction_memory to alu (IA)
     sc_signal<int> opCodeIA;
 
-    // data_memory to alu (DA)
-    sc_signal<int> regValueStartDA, regValueTermDA;
+    // alu to data_memory (AD)
+    sc_signal<int> dataWriteAD;
 
     // control_part (TODO) to data_memory (CD)
     //sc_signal<bool> isReadingCD;
 
-    // program_counter to instruction_memory (PI)
-    sc_signal<int> addressPI;
-
-    //// alu to data_memory (AD)
-    sc_signal<int> resultAD;
-
-
     //          ### COMPONENTS ###
-    alu Alu ("Alu");
-    //  -- Input --
-    Alu.start(regValueStartDA);
-    Alu.term(regValueTermDA);
-    Alu.opCode(opCodeIA);
-    //  -- OutPut --
-    Alu.result(resultAD);
-
-    instruction_memory InstructionMemory("InstructionMemory");
-    //  -- Input --
-    InstructionMemory.address(addressPI);
-    //  -- OutPut --
-    InstructionMemory.opCode(opCodeIA);
-    InstructionMemory.regIndexStart(regIndexStartID);
-    InstructionMemory.regIndexTerm(regIndexTermID);
-    InstructionMemory.regIndexDest(regIndexDestID);
-
-    data_memory DataMemory("DataMemory");
-    //  -- Input --
-    DataMemory.regIndexStart(regIndexStartID);
-    DataMemory.regIndexTerm(regIndexTermID);
-    DataMemory.regIndexDest(regIndexDestID);
-    DataMemory.result(resultAD);
-    //  -- OutPut --
-    DataMemory.regValueStart(regValueStartDA);
-    DataMemory.regValueTerm(regValueTermDA);
 
     program_counter ProgramCounter("ProgramCounter");
     //  -- Input --
     ProgramCounter.clock(clock);
     //  -- OutPut --
     ProgramCounter.address(addressPI);
+
+    instruction_memory InstructionMemory("InstructionMemory");
+    //  -- Input --
+    InstructionMemory.address(addressPI);
+    //  -- OutPut --
+    InstructionMemory.opCode(opCodeIA);
+    InstructionMemory.regRead1(regRead1ID);
+    InstructionMemory.regRead2(regRead2ID);
+    InstructionMemory.regWrite(regWriteID);
+
+    data_memory DataMemory("DataMemory");
+    //  -- Input --
+    DataMemory.regRead1(regRead1ID);
+    DataMemory.regRead2(regRead2ID);
+    DataMemory.regWrite(regWriteID);
+    DataMemory.dataWrite(dataWriteAD);
+    //  -- OutPut --
+    DataMemory.dataRead1(dataRead1DA);
+    DataMemory.dataRead2(dataRead2DA);
+
+    alu Alu ("Alu");
+    //  -- Input --
+    Alu.opCode(opCodeIA);
+    Alu.dataRead1(dataRead1DA);
+    Alu.dataRead2(dataRead2DA);
+    //  -- OutPut --
+    Alu.dataWrite(dataWriteAD);
+
 
     // # READ DATA FILE AND LOAD INTO DATA MEMORY #
     fstream instFs;
@@ -108,13 +109,13 @@ int sc_main(int argc, char* argv[]) {
     // Loads all instructions into the memory
     int dest = 0;
     while (instFs >> dest) {
-        instFs >> DataMemory.mem[dest];
+        instFs >> DataMemory.memory[dest];
     }
     instFs.close();
 
     // Prints all loaded instructions
     for (int j = 0; j < 10; j++)
-        cout << DataMemory.mem[j] << endl;
+        cout << DataMemory.memory[j] << endl;
 
     //  # READ INSTRUCTION FILE AND LOAD INTO INSTRUCTION MEMORY #
     instFs.open("instruction.in");
@@ -132,31 +133,31 @@ int sc_main(int argc, char* argv[]) {
     while (instFs >> opCodeName) {
         // Convert opCode string to int and save
         if(opCodeName == "AND")
-            InstructionMemory.mem[i] = 0;
+            InstructionMemory.memory[i].opCode = 0;
         else if(opCodeName == "OR")
-            InstructionMemory.mem[i] = 1;
+            InstructionMemory.memory[i].opCode = 1;
         else if(opCodeName == "XOR")
-            InstructionMemory.mem[i] = 2;
+            InstructionMemory.memory[i].opCode = 2;
         else if(opCodeName == "NOT")
-            InstructionMemory.mem[i] = 3;
+            InstructionMemory.memory[i].opCode = 3;
         else if(opCodeName == "CMP")
-            InstructionMemory.mem[i] = 4;
+            InstructionMemory.memory[i].opCode = 4;
         else if(opCodeName == "ADD")
-            InstructionMemory.mem[i] = 5;
+            InstructionMemory.memory[i].opCode = 5;
         else if(opCodeName == "SUB")
-            InstructionMemory.mem[i] = 6;
+            InstructionMemory.memory[i].opCode = 6;
 
         // Get all the regIndexisters address and save
-        instFs >> InstructionMemory.mem[i].regStart;
-        instFs >> InstructionMemory.mem[i].regTerm;
-        instFs >> InstructionMemory.mem[i].regDest;
+        instFs >> InstructionMemory.memory[i].regRead1;
+        instFs >> InstructionMemory.memory[i].regRead2;
+        instFs >> InstructionMemory.memory[i].regWrite;
         i++;
     }
     instFs.close();
 
     // Prints all loaded instructions
     for (int j = 0; j < i; j++)
-        cout << InstructionMemory.mem[j] << endl;
+        cout << InstructionMemory.memory[j] << endl;
 
 
     testbench TestBench("TestBench");
@@ -200,17 +201,17 @@ int sc_main(int argc, char* argv[]) {
 
     sc_trace(fp,InstructionMemory.address,"address");
     //sc_trace(fp,InstructionMemory.opCode,"opCode");
-    //sc_trace(fp,InstructionMemory.regIndexStart,"regIndexStart");
-    //sc_trace(fp,InstructionMemory.regIndexTerm,"regIndexTerm");
-    //sc_trace(fp,InstructionMemory.regIndexDest,"regIndexDest");
+    //sc_trace(fp,InstructionMemory.regRead1,"regRead1");
+    //sc_trace(fp,InstructionMemory.regRead2,"regRead2");
+    //sc_trace(fp,InstructionMemory.regWrite,"regWrite");
 
-    sc_trace(fp, DataMemory.regIndexStart, "regIndexStart");
-    sc_trace(fp, DataMemory.regIndexTerm, "regIndexTerm");
-    sc_trace(fp, DataMemory.regIndexDest, "regIndexDest");
-    sc_trace(fp, DataMemory.result, "result");
+    sc_trace(fp, DataMemory.regRead1, "regRead1");
+    sc_trace(fp, DataMemory.regRead2, "regRead2");
+    sc_trace(fp, DataMemory.regWrite, "regWrite");
+    sc_trace(fp, DataMemory.dataWrite, "dataWrite");
 
-    sc_trace(fp, DataMemory.regValueStart, "regValueStart");
-    sc_trace(fp, DataMemory.regValueTerm, "regValueTerm");
+    sc_trace(fp, DataMemory.dataRead1, "dataRead1");
+    sc_trace(fp, DataMemory.dataRead2, "dataRead2");
 
     sc_start();
 

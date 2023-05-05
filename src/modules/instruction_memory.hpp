@@ -1,27 +1,21 @@
-#include "definitions.hpp"
 #include "systemc.h"
-#include <ostream>
+#include "definitions.hpp"
 
 SC_MODULE(instruction_memory) {
-    sc_in<int> address; // input address
-    sc_out<int> opCode, regIndexStart, regIndexTerm, regIndexDest;
+    sc_in<int> address;
+    sc_out<int> opCode, regRead1, regRead2, regWrite;
 
-    inst mem[INST_COUNT] = {{0, 0, 0, 0}}; // initialize memory
+    inst memory[INST_COUNT] = {{0, 0, 0, 0}};
 
-    // need to divide it by 4 since we are using a 32 bit word (4 bytes)
-    //void read_instruction() { instruction.write(mem[address.read() / 4]); }
-
-    void read_instruction() { 
-        opCode.write(mem[address.read()].opCode); 
-        regIndexStart.write(mem[address.read()].regStart); 
-        regIndexTerm.write(mem[address.read()].regTerm); 
-        regIndexDest.write(mem[address.read()].regDest); 
+    void read() { 
+        opCode.write(memory[address.read()].opCode); 
+        regRead1.write(memory[address.read()].regRead1); 
+        regRead2.write(memory[address.read()].regRead2); 
+        regWrite.write(memory[address.read()].regWrite); 
     }
 
     SC_CTOR(instruction_memory) {
-        SC_METHOD(read_instruction);
+        SC_METHOD(read);
         sensitive << address;
-        //sensitive << clock.neg(); TODO
-        //instruction.initialize(0);
     }
 };
