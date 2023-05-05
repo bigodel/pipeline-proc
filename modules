@@ -29,3 +29,23 @@ modules:
   based on control signals.
 
 - [X] Adder: It performs arithmetic addition of two numbers.
+
+Instruction types:
+
+R-type Instructions
+
+|  31-26 | 25-21 | 20-16 | 15-11 |  10-6 |   5-0 |
+|--------+-------+-------+-------+-------+-------|
+| opcode |    rs |    rt |    rd | shamt | funct |
+
+I-type Instructions
+
+|  31-26 | 25-21 | 20-16 | 15-0 |
+|--------+-------+-------+------|
+| opcode |    rs |    rt |  imm |
+
+J-type Instructions
+
+|  31-26 | 25-0 |
+|--------+------|
+| opcode | addr |
