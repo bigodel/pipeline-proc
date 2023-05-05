@@ -4,7 +4,7 @@
 
 SC_MODULE(instruction_memory) {
     sc_in<int> address; // input address
-    sc_out<int> opCode, regStart, regTerm, regDest;
+    sc_out<int> opCode, regIndexStart, regIndexTerm, regIndexDest;
 
     inst mem[INST_COUNT] = {{0, 0, 0, 0}}; // initialize memory
 
@@ -13,9 +13,9 @@ SC_MODULE(instruction_memory) {
 
     void read_instruction() { 
         opCode.write(mem[address.read()].opCode); 
-        regStart.write(mem[address.read()].regStart); 
-        regTerm.write(mem[address.read()].regTerm); 
-        regDest.write(mem[address.read()].regDest); 
+        regIndexStart.write(mem[address.read()].regStart); 
+        regIndexTerm.write(mem[address.read()].regTerm); 
+        regIndexDest.write(mem[address.read()].regDest); 
     }
 
     SC_CTOR(instruction_memory) {

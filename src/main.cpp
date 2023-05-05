@@ -36,20 +36,19 @@ SC_MODULE(testbench) {
 
 int sc_main(int argc, char* argv[]) {
 
-    // ### CLOCK ###
+    //          ### CLOCK ###
     sc_clock clock("clock", 10, SC_NS, 0.5);
 
-
-    // ### SIGNALS (WIRES) ###
+    //          ### SIGNALS (WIRES) ###
 
     // instruction_memory to data_memory (ID)
-    sc_signal<int> regStartID, regTermID, regDestID;
+    sc_signal<int> regIndexStartID, regIndexTermID, regIndexDestID;
 
     // instruction_memory to alu (IA)
     sc_signal<int> opCodeIA;
 
     // data_memory to alu (DA)
-    sc_signal<int> dataStartDA, dataTermDA;
+    sc_signal<int> regValueStartDA, regValueTermDA;
 
     // control_part (TODO) to data_memory (CD)
     //sc_signal<bool> isReadingCD;
@@ -61,12 +60,11 @@ int sc_main(int argc, char* argv[]) {
     sc_signal<int> resultAD;
 
 
-    //              ### COMPONENTS ###
-
+    //          ### COMPONENTS ###
     alu Alu ("Alu");
     //  -- Input --
-    Alu.start(dataStartDA);
-    Alu.term(dataTermDA);
+    Alu.start(regValueStartDA);
+    Alu.term(regValueTermDA);
     Alu.opCode(opCodeIA);
     //  -- OutPut --
     Alu.result(resultAD);
@@ -76,20 +74,19 @@ int sc_main(int argc, char* argv[]) {
     InstructionMemory.address(addressPI);
     //  -- OutPut --
     InstructionMemory.opCode(opCodeIA);
-    InstructionMemory.regStart(regStartID);
-    InstructionMemory.regTerm(regTermID);
-    InstructionMemory.regDest(regDestID);
+    InstructionMemory.regIndexStart(regIndexStartID);
+    InstructionMemory.regIndexTerm(regIndexTermID);
+    InstructionMemory.regIndexDest(regIndexDestID);
 
     data_memory DataMemory("DataMemory");
     //  -- Input --
-    DataMemory.regStart(regStartID);
-    DataMemory.regTerm(regTermID);
-    DataMemory.regDest(regDestID);
+    DataMemory.regIndexStart(regIndexStartID);
+    DataMemory.regIndexTerm(regIndexTermID);
+    DataMemory.regIndexDest(regIndexDestID);
     DataMemory.result(resultAD);
-    //DataMemory.isReading(isReadingCD);
     //  -- OutPut --
-    DataMemory.dataStart(dataStartDA);
-    DataMemory.dataTerm(dataTermDA);
+    DataMemory.regValueStart(regValueStartDA);
+    DataMemory.regValueTerm(regValueTermDA);
 
     program_counter ProgramCounter("ProgramCounter");
     //  -- Input --
@@ -149,7 +146,7 @@ int sc_main(int argc, char* argv[]) {
         else if(opCodeName == "SUB")
             InstructionMemory.mem[i] = 6;
 
-        // Get all the registers address and save
+        // Get all the regIndexisters address and save
         instFs >> InstructionMemory.mem[i].regStart;
         instFs >> InstructionMemory.mem[i].regTerm;
         instFs >> InstructionMemory.mem[i].regDest;
@@ -203,18 +200,17 @@ int sc_main(int argc, char* argv[]) {
 
     sc_trace(fp,InstructionMemory.address,"address");
     //sc_trace(fp,InstructionMemory.opCode,"opCode");
-    //sc_trace(fp,InstructionMemory.regStart,"regStart");
-    //sc_trace(fp,InstructionMemory.regTerm,"regTerm");
-    //sc_trace(fp,InstructionMemory.regDest,"regDest");
+    //sc_trace(fp,InstructionMemory.regIndexStart,"regIndexStart");
+    //sc_trace(fp,InstructionMemory.regIndexTerm,"regIndexTerm");
+    //sc_trace(fp,InstructionMemory.regIndexDest,"regIndexDest");
 
-    sc_trace(fp, DataMemory.regStart, "regStart");
-    sc_trace(fp, DataMemory.regTerm, "regTerm");
-    sc_trace(fp, DataMemory.regDest, "regDest");
+    sc_trace(fp, DataMemory.regIndexStart, "regIndexStart");
+    sc_trace(fp, DataMemory.regIndexTerm, "regIndexTerm");
+    sc_trace(fp, DataMemory.regIndexDest, "regIndexDest");
     sc_trace(fp, DataMemory.result, "result");
-    //sc_trace(fp, DataMemory.isReading, "isReading");
 
-    sc_trace(fp, DataMemory.dataStart, "dataStart");
-    sc_trace(fp, DataMemory.dataTerm, "dataTerm");
+    sc_trace(fp, DataMemory.regValueStart, "regValueStart");
+    sc_trace(fp, DataMemory.regValueTerm, "regValueTerm");
 
     sc_start();
 
