@@ -2,24 +2,26 @@
 #include "definitions.hpp"
 
 SC_MODULE(data_memory) {
-    sc_in<int> address;     // input: mem address
-    sc_in<int> input_data;  // input: data to be written
-    sc_in<bool> enable;      // input: write enable signal
-    sc_out<int> data;       // output: input_data read from mem
+    // IMPORTANT: I'm treating data memory as data and register memory also
 
+    sc_in<int> regStart, regTerm, regDest, result;
+    sc_in<bool> isReading;
+    sc_out<int> dataStart, dataTerm;
 
     // The first value must always be zero
     int mem[10] = {0};
 
     void read_write() {
-        if (enable)
-            mem[address.read()] = input_data.read();
+        if (isReading.read()) {
+            dataStart.write(mem[regStart.read()]);
+            dataTerm.write(mem[regTerm.read()]);
+        }
         else
-            data.write(mem[address.read()]);
+            mem[regDest.read()] = result.read();
     }
 
     SC_CTOR(data_memory) {
         SC_METHOD(read_write);
-        sensitive << address << input_data << enable;
+        sensitive << regStart << regTerm << regDest << result << isReading;
     }
 };

@@ -9,8 +9,7 @@ using namespace std;
 
 // INSTRUCTION TYPE
 struct inst {
-    int opCode;
-    int regStart, regTerm, regDest;
+    int opCode, regStart, regTerm, regDest;
 
     // Constructor
     inst(int opCode = 0, int regStart = 0, int regTerm = 0, int regDest = 0) 

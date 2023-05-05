@@ -4,14 +4,19 @@
 
 SC_MODULE(instruction_memory) {
     sc_in<int> address; // input address
-    sc_out<inst> instruction;
+    sc_out<int> opCode, regStart, regTerm, regDest;
 
     inst mem[INST_COUNT] = {{0, 0, 0, 0}}; // initialize memory
 
     // need to divide it by 4 since we are using a 32 bit word (4 bytes)
     //void read_instruction() { instruction.write(mem[address.read() / 4]); }
 
-    void read_instruction() { instruction.write(mem[address.read()]); }
+    void read_instruction() { 
+        opCode.write(mem[address.read()].opCode); 
+        regStart.write(mem[address.read()].regStart); 
+        regTerm.write(mem[address.read()].regTerm); 
+        regDest.write(mem[address.read()].regDest); 
+    }
 
     SC_CTOR(instruction_memory) {
         SC_METHOD(read_instruction);

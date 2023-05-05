@@ -3,7 +3,7 @@
 #include <fstream>
 
 // INCLUDE MODULES
-//#include "modules/alu.hpp"
+#include "modules/alu.hpp"
 #include "modules/mux2x1.hpp"
 #include "modules/instruction_memory.hpp"
 #include "modules/data_memory.hpp"
@@ -19,49 +19,60 @@
 
 int sc_main(int argc, char* argv[]) {
 
-    // ### SIGNALS (WIRES) ###
-
-    //// ula
-    sc_signal<int> regStartSig, regTermSig, opCodeSig, regDestSig;
-
-    // mux2x1
-    sc_signal<sc_uint<32>> a, b, out;
-    sc_signal<bool> sel;
-
-    // instuction_memory
-    sc_signal<int> addressIM;
-    sc_signal<inst> instructionIM;
-
-    // data_memory
-    sc_signal<int> addressDM, input_dataDM, dataDM;
-    sc_signal<bool> enableDM;
-
     // ### CLOCK ###
     sc_clock Clock("Clock", 10, SC_NS, 0.5);
 
-    // ### COMPONENTS ###
 
-    //alu Alu ("Alu");
-    //Alu.regStart(regStartSig);
-    //Alu.regTerm(regTermSig);
-    //Alu.opCode(opCodeSig);
-    //Alu.regDest(regDestSig);
+    // ### SIGNALS (WIRES) ###
 
-    mux2x1 Mux2x1("Mux2x1");
-    Mux2x1.a(a);
-    Mux2x1.b(b);
-    Mux2x1.sel(sel);
-    Mux2x1.out(out);
+    // instruction_memory to data_memory (ID)
+    sc_signal<int> regStartID, regTermID, regDestID;
+
+    // instruction_memory to alu (IA)
+    sc_signal<int> opCodeIA;
+
+    // data_memory to alu (DA)
+    sc_signal<int> dataStartDA, dataTermDA;
+
+    // control_part (TODO) to data_memory (CD)
+    sc_signal<bool> isReadingCD;
+
+    // program_counter (TODO) to instruction_memory (PI)
+    sc_signal<int> addressPI;
+
+    //// alu to data_memory (AD)
+    sc_signal<int> resultAD;
+
+
+    //              ### COMPONENTS ###
+
+    alu Alu ("Alu");
+    //  -- Input --
+    Alu.start(dataStartDA);
+    Alu.term(dataTermDA);
+    Alu.opCode(opCodeIA);
+    //  -- OutPut --
+    Alu.result(resultAD);
 
     instruction_memory InstructionMemory("InstructionMemory");
-    InstructionMemory.address(addressIM);
-    InstructionMemory.instruction(instructionIM);
+    //  -- Input --
+    InstructionMemory.address(addressPI);
+    //  -- OutPut --
+    InstructionMemory.opCode(opCodeIA);
+    InstructionMemory.regStart(regStartID);
+    InstructionMemory.regTerm(regTermID);
+    InstructionMemory.regDest(regDestID);
 
     data_memory DataMemory("DataMemory");
-    DataMemory.address(addressDM);
-    DataMemory.input_data(input_dataDM);
-    DataMemory.enable(enableDM);
-    DataMemory.data(dataDM);
+    //  -- Input --
+    DataMemory.regStart(regStartID);
+    DataMemory.regTerm(regTermID);
+    DataMemory.regDest(regDestID);
+    DataMemory.result(resultAD);
+    DataMemory.isReading(isReadingCD);
+    //  -- OutPut --
+    DataMemory.dataStart(dataStartDA);
+    DataMemory.dataTerm(dataTermDA);
 
     // # READ DATA FILE AND LOAD INTO DATA MEMORY #
     fstream instFs;
@@ -75,9 +86,9 @@ int sc_main(int argc, char* argv[]) {
     }
 
     // Loads all instructions into the memory
-    int address = 0;
-    while (instFs >> address) {
-        instFs >> DataMemory.mem[address];
+    int dest = 0;
+    while (instFs >> dest) {
+        instFs >> DataMemory.mem[dest];
     }
     instFs.close();
 
@@ -85,7 +96,7 @@ int sc_main(int argc, char* argv[]) {
     for (int j = 0; j < 10; j++)
         cout << DataMemory.mem[j] << endl;
 
-    // # READ INSTRUCTION FILE AND LOAD INTO INSTRUCTION MEMORY #
+    //  # READ INSTRUCTION FILE AND LOAD INTO INSTRUCTION MEMORY #
     instFs.open("instruction.in");
 
     // Checks if the file was found
@@ -99,6 +110,7 @@ int sc_main(int argc, char* argv[]) {
     string opCodeName = "";
     // Checks if there is a instruction opCode in the line
     while (instFs >> opCodeName) {
+        // Convert opCode string to int and save
         if(opCodeName == "AND")
             InstructionMemory.mem[i] = 0;
         else if(opCodeName == "OR")
@@ -114,7 +126,7 @@ int sc_main(int argc, char* argv[]) {
         else if(opCodeName == "SUB")
             InstructionMemory.mem[i] = 6;
 
-        // If so, get all the registers address
+        // Get all the registers address and save
         instFs >> InstructionMemory.mem[i].regStart;
         instFs >> InstructionMemory.mem[i].regTerm;
         instFs >> InstructionMemory.mem[i].regDest;
