@@ -52,7 +52,7 @@ int sc_main(int argc, char* argv[]) {
     sc_signal<int> dataStartDA, dataTermDA;
 
     // control_part (TODO) to data_memory (CD)
-    sc_signal<bool> isReadingCD;
+    //sc_signal<bool> isReadingCD;
 
     // program_counter to instruction_memory (PI)
     sc_signal<int> addressPI;
@@ -86,7 +86,7 @@ int sc_main(int argc, char* argv[]) {
     DataMemory.regTerm(regTermID);
     DataMemory.regDest(regDestID);
     DataMemory.result(resultAD);
-    DataMemory.isReading(isReadingCD);
+    //DataMemory.isReading(isReadingCD);
     //  -- OutPut --
     DataMemory.dataStart(dataStartDA);
     DataMemory.dataTerm(dataTermDA);
@@ -199,13 +199,22 @@ int sc_main(int argc, char* argv[]) {
     fp=sc_create_vcd_trace_file("wave");
     fp->set_time_unit(1, sc_core::SC_NS);
 
-    sc_trace(fp,InstructionMemory.address,"address");
-    sc_trace(fp,InstructionMemory.opCode,"opCode");
-    sc_trace(fp,InstructionMemory.regStart,"regStart");
-    sc_trace(fp,InstructionMemory.regTerm,"regTerm");
-    sc_trace(fp,InstructionMemory.regDest,"regDest");
-
     sc_trace(fp, clock, "clock");
+
+    sc_trace(fp,InstructionMemory.address,"address");
+    //sc_trace(fp,InstructionMemory.opCode,"opCode");
+    //sc_trace(fp,InstructionMemory.regStart,"regStart");
+    //sc_trace(fp,InstructionMemory.regTerm,"regTerm");
+    //sc_trace(fp,InstructionMemory.regDest,"regDest");
+
+    sc_trace(fp, DataMemory.regStart, "regStart");
+    sc_trace(fp, DataMemory.regTerm, "regTerm");
+    sc_trace(fp, DataMemory.regDest, "regDest");
+    sc_trace(fp, DataMemory.result, "result");
+    //sc_trace(fp, DataMemory.isReading, "isReading");
+
+    sc_trace(fp, DataMemory.dataStart, "dataStart");
+    sc_trace(fp, DataMemory.dataTerm, "dataTerm");
 
     sc_start();
 
