@@ -7,6 +7,7 @@
 #include "modules/mux2x1.hpp"
 #include "modules/instruction_memory.hpp"
 #include "modules/data_memory.hpp"
+#include "modules/program_counter.hpp"
 
 // INCLUDE TESTBENCHES
 #include "testbenches/testbench_alu.hpp"
@@ -16,11 +17,27 @@
 #include "monitors/monitor_alu.hpp"
 #include "monitors/monitor_mux2x1.hpp"
 
+SC_MODULE(testbench) {
+    sc_in_clk clock;
+
+    void test() {
+        for (size_t i = 0; i < 10; i++) {
+            wait();
+        }
+
+        sc_stop();
+    }
+
+    SC_CTOR(testbench) {
+        SC_THREAD(test);
+        sensitive << clock;
+    }
+};
 
 int sc_main(int argc, char* argv[]) {
 
     // ### CLOCK ###
-    sc_clock Clock("Clock", 10, SC_NS, 0.5);
+    sc_clock clock("clock", 10, SC_NS, 0.5);
 
 
     // ### SIGNALS (WIRES) ###
@@ -37,7 +54,7 @@ int sc_main(int argc, char* argv[]) {
     // control_part (TODO) to data_memory (CD)
     sc_signal<bool> isReadingCD;
 
-    // program_counter (TODO) to instruction_memory (PI)
+    // program_counter to instruction_memory (PI)
     sc_signal<int> addressPI;
 
     //// alu to data_memory (AD)
@@ -73,6 +90,12 @@ int sc_main(int argc, char* argv[]) {
     //  -- OutPut --
     DataMemory.dataStart(dataStartDA);
     DataMemory.dataTerm(dataTermDA);
+
+    program_counter ProgramCounter("ProgramCounter");
+    //  -- Input --
+    ProgramCounter.clock(clock);
+    //  -- OutPut --
+    ProgramCounter.address(addressPI);
 
     // # READ DATA FILE AND LOAD INTO DATA MEMORY #
     fstream instFs;
@@ -138,6 +161,11 @@ int sc_main(int argc, char* argv[]) {
     for (int j = 0; j < i; j++)
         cout << InstructionMemory.mem[j] << endl;
 
+
+    testbench TestBench("TestBench");
+    TestBench.clock(clock);
+
+
     // ### TESTBENCHES ###
     //testbench_ula TbUla("TbUla");
     //TbUla.A(ASig);
@@ -166,18 +194,22 @@ int sc_main(int argc, char* argv[]) {
     //MonMux2x1.out(out);
     //MonMux2x1.Clk(Clock);
 
-    // WAVEFORM
-    //sc_trace_file *fp;
-    //fp=sc_create_vcd_trace_file("wave");
-    //fp->set_time_unit(1, sc_core::SC_NS);
-    //sc_trace(fp,ALU.A,"A");
-    //sc_trace(fp,ALU.B,"B");
-    //sc_trace(fp,Clock,"CLK");
-    //=========================
+    //          ### WAVEFORM ###
+    sc_trace_file *fp;
+    fp=sc_create_vcd_trace_file("wave");
+    fp->set_time_unit(1, sc_core::SC_NS);
+
+    sc_trace(fp,InstructionMemory.address,"address");
+    sc_trace(fp,InstructionMemory.opCode,"opCode");
+    sc_trace(fp,InstructionMemory.regStart,"regStart");
+    sc_trace(fp,InstructionMemory.regTerm,"regTerm");
+    sc_trace(fp,InstructionMemory.regDest,"regDest");
+
+    sc_trace(fp, clock, "clock");
 
     sc_start();
 
-    //sc_close_vcd_trace_file(fp);
+    sc_close_vcd_trace_file(fp);
 
     return 0;
 }
