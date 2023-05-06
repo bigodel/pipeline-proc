@@ -4,7 +4,8 @@ SC_MODULE(data_memory) {
     sc_in<int> regRead1, regRead2, regWrite, dataWrite;
     sc_out<int> dataRead1, dataRead2;
 
-    int memory[32] = {0};
+    // Increase this number
+    int memory[10] = {0};
 
     void read() {
         dataRead1.write(memory[regRead1.read()]);
@@ -12,7 +13,6 @@ SC_MODULE(data_memory) {
     }
 
     void write() {
-        // Write the value in the memory 
         memory[regWrite.read()] = dataWrite.read();
     }
 
