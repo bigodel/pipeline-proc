@@ -8,9 +8,10 @@ SC_MODULE(program_counter) {
 
     int addressCounter = -1;
 
+    // TODO: this should break, but it dosen't
     void increment() {
         if(addressCounter < INST_COUNT) {
-            address.write(addressCounter);
+            address.write(addressCounter); // Putting to read -1 index in a array
             addressCounter++;
         }
     }

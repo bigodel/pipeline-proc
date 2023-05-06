@@ -1,6 +1,4 @@
-#include <iostream>
 #include "systemc.h"
-using namespace std;
 
 SC_MODULE(gi_gd_register) {
     sc_in_clk clock;

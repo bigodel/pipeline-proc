@@ -9,14 +9,7 @@
 #include "modules/data_memory.hpp"
 #include "modules/program_counter.hpp"
 #include "modules/gi_gd_register.hpp"
-
-// INCLUDE TESTBENCHES
-#include "testbenches/testbench_alu.hpp"
-#include "testbenches/testbench_mux2x1.hpp"
-
-// INCLUDE MONITORS
-#include "monitors/monitor_alu.hpp"
-#include "monitors/monitor_mux2x1.hpp"
+#include "modules/gd_ex_register.hpp"
 
 SC_MODULE(testbench) {
     sc_in_clk clock;
@@ -50,17 +43,23 @@ int sc_main(int argc, char* argv[]) {
     // gi_gd_register ot data_memory (GID)
     sc_signal<int> regRead1GID, regRead2GID, regWriteGID;
 
-    // data_memory to alu (DA)
-    sc_signal<int> dataRead1DA, dataRead2DA;
+    // gi_gd_register to gd_ex_register  (GIA)
+    sc_signal<int> opCodeGIGD;
 
-    // gi_gd_register to alu (GIA)
-    sc_signal<int> opCodeGIA;
+    // gd_ex_register to alu (GDA)
+    sc_signal<int> opCodeGDA;
 
-    // alu to data_memory (AD)
-    sc_signal<int> dataWriteAD;
+    // data_memory to gd_ex_register (DGD)
+    sc_signal<int> dataRead1DGD, dataRead2DGD;
 
-    // control_part (TODO) to data_memory (CD)
-    //sc_signal<bool> isReadingCD;
+    // gd_ex_register to alu (GDA)
+    sc_signal<int> dataRead1GDA, dataRead2GDA;
+
+    // alu to gd_ex_register (AGD)
+    sc_signal<int> dataWriteAGD;
+
+    // gd_ex_register to data_memory (GDD)
+    sc_signal<int> dataWriteGDD;
 
     //          ### COMPONENTS ###
 
@@ -87,7 +86,7 @@ int sc_main(int argc, char* argv[]) {
     GIGDRegister.regRead2In(regRead2IGI);
     GIGDRegister.regWriteIn(regWriteIGI);
     //  -- OutPut --
-    GIGDRegister.opCodeOut(opCodeGIA);
+    GIGDRegister.opCodeOut(opCodeGIGD);
     GIGDRegister.regRead1Out(regRead1GID);
     GIGDRegister.regRead2Out(regRead2GID);
     GIGDRegister.regWriteOut(regWriteGID);
@@ -97,19 +96,31 @@ int sc_main(int argc, char* argv[]) {
     DataMemory.regRead1(regRead1GID);
     DataMemory.regRead2(regRead2GID);
     DataMemory.regWrite(regWriteGID);
-    DataMemory.dataWrite(dataWriteAD);
+    DataMemory.dataWrite(dataWriteGDD);
     //  -- OutPut --
-    DataMemory.dataRead1(dataRead1DA);
-    DataMemory.dataRead2(dataRead2DA);
+    DataMemory.dataRead1(dataRead1DGD);
+    DataMemory.dataRead2(dataRead2DGD);
+
+    gd_ex_register GDEXRegister("GDEXRegister");
+    //  -- Input --
+    GDEXRegister.clock(clock);
+    GDEXRegister.opCodeIn(opCodeGIGD);
+    GDEXRegister.dataRead1In(dataRead1DGD);
+    GDEXRegister.dataRead2In(dataRead2DGD);
+    GDEXRegister.dataWriteIn(dataWriteAGD);
+    // -- OutPut --
+    GDEXRegister.opCodeOut(opCodeGDA);
+    GDEXRegister.dataRead1Out(dataRead1GDA);
+    GDEXRegister.dataRead2Out(dataRead2GDA);
+    GDEXRegister.dataWriteOut(dataWriteGDD);
 
     alu Alu ("Alu");
     //  -- Input --
-    Alu.opCode(opCodeGIA);
-    Alu.dataRead1(dataRead1DA);
-    Alu.dataRead2(dataRead2DA);
+    Alu.opCode(opCodeGDA);
+    Alu.dataRead1(dataRead1GDA);
+    Alu.dataRead2(dataRead2GDA);
     //  -- OutPut --
-    Alu.dataWrite(dataWriteAD);
-
+    Alu.dataWrite(dataWriteAGD);
 
     // # READ DATA FILE AND LOAD INTO DATA MEMORY #
     fstream instFs;
@@ -167,6 +178,8 @@ int sc_main(int argc, char* argv[]) {
     }
     instFs.close();
 
+    //          ### TESTBENCH ###
+
     testbench TestBench("TestBench");
     TestBench.clock(clock);
 
@@ -175,33 +188,29 @@ int sc_main(int argc, char* argv[]) {
     fp=sc_create_vcd_trace_file("wave");
     fp->set_time_unit(1, sc_core::SC_NS);
 
-    sc_trace(fp, clock, "clock");
+    sc_trace(fp, clock,                     "0-0-clock");
 
-    //sc_trace(fp,InstructionMemory.address,"address");
-    //sc_trace(fp,InstructionMemory.opCode,"opCode");
-    //sc_trace(fp,InstructionMemory.regRead1,"regRead1");
-    //sc_trace(fp,InstructionMemory.regRead2,"regRead2");
-    //sc_trace(fp,InstructionMemory.regWrite,"regWrite");
+    sc_trace(fp, GIGDRegister.opCodeIn,     "1-1-opCodeIGI");
+    sc_trace(fp, GIGDRegister.regRead1In,   "1-2-regRead1IGI");
+    sc_trace(fp, GIGDRegister.regRead2In,   "1-3-regRead2IGI");
+    sc_trace(fp, GIGDRegister.regWriteIn,   "1-4-regWriteIGI");
 
-    //sc_trace(fp, DataMemory.regRead1, "regRead1");
-    //sc_trace(fp, DataMemory.regRead2, "regRead2");
-    //sc_trace(fp, DataMemory.regWrite, "regWrite");
-    sc_trace(fp, DataMemory.dataWrite, "dataWrite");
+    sc_trace(fp, GIGDRegister.opCodeOut,    "2-1-opCodeGIGD");
+    sc_trace(fp, GIGDRegister.regRead1Out,  "2-2-regRead1GID");
+    sc_trace(fp, GIGDRegister.regRead2Out,  "2-3-regRead2GID");
+    sc_trace(fp, GIGDRegister.regWriteOut,  "2-4-regWriteGID");
 
-    //sc_trace(fp, DataMemory.dataRead1, "dataRead1");
-    //sc_trace(fp, DataMemory.dataRead2, "dataRead2");
+    sc_trace(fp, GDEXRegister.opCodeIn,     "2-5-opCodeGIGD");
+    sc_trace(fp, GDEXRegister.dataRead1In,  "2-6-dataRead1DGD");
+    sc_trace(fp, GDEXRegister.dataRead2In,  "2-7-dataRead2DGD");
+    sc_trace(fp, GDEXRegister.dataWriteIn,  "2-8-dataWriteAGD");
 
-    //sc_trace(fp, GIGDRegister.clock, "clock");
-    sc_trace(fp, GIGDRegister.opCodeIn, "opCodeIGI");
-    sc_trace(fp, GIGDRegister.regRead1In, "regRead1IGI");
-    sc_trace(fp, GIGDRegister.regRead2In, "regRead2IGI");
-    sc_trace(fp, GIGDRegister.regWriteIn, "regWriteIGI");
+    sc_trace(fp, GDEXRegister.opCodeOut,    "3-1-opCodeGDA");
+    sc_trace(fp, GDEXRegister.dataRead1Out, "3-2-dataRead1GDA");
+    sc_trace(fp, GDEXRegister.dataRead2Out, "3-3-dataRead2GDA");
+    sc_trace(fp, GDEXRegister.dataWriteOut, "3-4-dataWriteGDD");
 
-    sc_trace(fp, GIGDRegister.opCodeOut, "opCodeGIA");
-    sc_trace(fp, GIGDRegister.regRead1Out, "regRead1GID");
-    sc_trace(fp, GIGDRegister.regRead2Out, "regRead2GID");
-    sc_trace(fp, GIGDRegister.regWriteOut, "regWriteGID");
-
+    sc_trace(fp, DataMemory.dataWrite,      "3-5-dataWriteGDD");
 
     sc_start();
 
