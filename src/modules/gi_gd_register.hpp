@@ -10,15 +10,17 @@ SC_MODULE(gi_gd_register) {
     int memory[4] = {0};
 
     void read_write() {
-            memory[0] = opCodeIn.read();
-            memory[1] = regRead1In.read();
-            memory[2] = regRead2In.read();
-            memory[3] = regWriteIn.read();
+        // Read
+        memory[0] = opCodeIn.read();
+        memory[1] = regRead1In.read();
+        memory[2] = regRead2In.read();
+        memory[3] = regWriteIn.read();
 
-            opCodeOut.write(memory[0]);
-            regRead1Out.write(memory[1]);
-            regRead2Out.write(memory[2]);
-            regWriteOut.write(memory[3]);
+        // Write
+        opCodeOut.write(memory[0]);
+        regRead1Out.write(memory[1]);
+        regRead2Out.write(memory[2]);
+        regWriteOut.write(memory[3]);
     }
 
     SC_CTOR(gi_gd_register) {

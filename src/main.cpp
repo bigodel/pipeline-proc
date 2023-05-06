@@ -31,14 +31,14 @@ SC_MODULE(testbench) {
 
     SC_CTOR(testbench) {
         SC_THREAD(test);
-        sensitive << clock;
+        sensitive << clock.pos();
     }
 };
 
 int sc_main(int argc, char* argv[]) {
 
     //          ### CLOCK ###
-    sc_clock clock("clock", 10, SC_NS, 0.5);
+    sc_clock clock("clock", 100, SC_NS, 0.5);
 
     //          ### SIGNALS (WIRES) ###
     // program_counter to instruction_memory (PI)
@@ -169,34 +169,6 @@ int sc_main(int argc, char* argv[]) {
 
     testbench TestBench("TestBench");
     TestBench.clock(clock);
-
-    // ### TESTBENCHES ###
-    //testbench_ula TbUla("TbUla");
-    //TbUla.A(ASig);
-    //TbUla.B(BSig);
-    //TbUla.CMD(CMDSig);
-    //TbUla.Clk(Clock);
-
-    //testbench_mux2x1 TbMux2x1("TbMux");
-    //TbMux2x1.a(a);
-    //TbMux2x1.b(b);
-    //TbMux2x1.sel(sel);
-    //TbMux2x1.Clk(Clock);
-
-    // ### MONITORS ###
-    //monitor_ula MonUla("MonUla");
-    //MonUla.A(ASig);
-    //MonUla.B(BSig);
-    //MonUla.CMD(CMDSig);
-    //MonUla.RES(RESSig);
-    //MonUla.Clk(Clock);
-
-    //monitor_mux2x1 MonMux2x1("MonMux2x1");
-    //MonMux2x1.a(a);
-    //MonMux2x1.b(b);
-    //MonMux2x1.sel(sel);
-    //MonMux2x1.out(out);
-    //MonMux2x1.Clk(Clock);
 
     //          ### WAVEFORM ###
     sc_trace_file *fp;
