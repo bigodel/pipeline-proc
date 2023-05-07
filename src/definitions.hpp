@@ -2,11 +2,11 @@
 #define DEFINITIONS_H
 
 // types
-#define WORD sc_uint<32>
-#define OP sc_uint<6>
-#define ADDR sc_uint<5>
-#define IMM sc_uint<16>
-#define ALU_OP sc_int<3>
+#define WORD sc_bv<32>
+#define OP sc_bv<6>
+#define ADDR sc_bv<5>
+#define IMM sc_bv<16>
+#define ALU_OP sc_bv<3>
 
 // constants
 #define INST_COUNT 256
@@ -23,20 +23,20 @@
 
 // opcodes
 // r-type
-#define OP_AND 0b000000
-#define OP_OR  0b000001
-#define OP_XOR 0b000010
-#define OP_NOT 0b000011
-#define OP_CMP 0b000100
-#define OP_ADD 0b000101
-#define OP_SUB 0b000110
+#define OP_AND "000000"
+#define OP_OR  "000001"
+#define OP_XOR "000010"
+#define OP_NOT "000011"
+#define OP_CMP "000100"
+#define OP_ADD "000101"
+#define OP_SUB "000110"
 // i-type
-#define OP_LD  0b000111
-#define OP_ST  0b001000
+#define OP_LD  "000111"
+#define OP_ST  "001000"
 // j-type
-#define OP_J   0b001001
-#define OP_JN  0b001010
-#define OP_JZ  0b001011
+#define OP_J   "001001"
+#define OP_JN  "001010"
+#define OP_JZ  "001011"
 
 using namespace std;
 
