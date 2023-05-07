@@ -27,8 +27,9 @@ SC_MODULE(testbench) {
 #include "modules/if_id_reg.hpp"
 #include "modules/instruction_memory.hpp"
 #include "modules/mux.hpp"
+//#include "modules/alu.hpp"
 #include "modules/program_counter.hpp"
-#include "modules/register_file.hpp"
+//#include "modules/register_file.hpp"
 
 // #include "modules/data_memory.hpp"
 // #include "modules/gi_gd_register.hpp"
@@ -40,33 +41,6 @@ int sc_main(int argc, char *argv[]) {
     sc_clock clock("clock", 100, SC_NS, 0.5);
 
     //          ### SIGNALS (WIRES) ###
-    // program_counter to instruction_memory (PI)
-    // sc_signal<int> addressPI;
-
-    //// instruction_memory to gi_gd_register (IGI)
-    // sc_signal<int> regRead1IGI, regRead2IGI, regWriteIGI, opCodeIGI;
-
-    //// gi_gd_register ot data_memory (GID)
-    // sc_signal<int> regRead1GID, regRead2GID;
-
-    //// gi_gd_register to gd_ex_register  (GIGD)
-    // sc_signal<int> opCodeGIGD, regWriteGIGD;
-
-    //// gd_ex_register to alu (GDA)
-    // sc_signal<int> opCodeGDA;
-
-    //// data_memory to gd_ex_register (DGD)
-    // sc_signal<int> dataRead1DGD, dataRead2DGD;
-
-    //// gd_ex_register to alu (GDA)
-    // sc_signal<WORD> dataRead1GDA, dataRead2GDA;
-
-    //// alu to gd_ex_register (AGD)
-    // sc_signal<WORD> dataWriteAGD;
-
-    //// gd_ex_register to data_memory (GDD)
-    // sc_signal<int> dataWriteGDD, regWriteGDD;
-
     sc_signal<int> PCjump_address;
     sc_signal<int> PCaddress;
 
@@ -75,25 +49,33 @@ int sc_main(int argc, char *argv[]) {
     sc_signal<WORD> ADs;
 
     // sc_signal<WORD> muxa;
-    sc_signal<WORD> IMinst;
+    //sc_signal<WORD> IMinst;
 
     sc_signal<WORD> IFIDaddress_out;
 
     sc_signal<WORD> RFreg1;
     sc_signal<WORD> RFreg2;
 
+    sc_signal<WORD> As;
+
     //          ### COMPONENTS ###
 
-    program_counter ProgramCounter("ProgramCounter");
+    program_counter program_counter("program_counter");
     //  -- Input --
-    ProgramCounter.clock(clock);
-    ProgramCounter.jump_address(PCjump_address);
+    program_counter.clock(clock);
+    program_counter.jump_address(PCjump_address);
     //  -- OutPut --
-    ProgramCounter.address(PCaddress);
+    program_counter.address(PCaddress);
 
-    instruction_memory InstructionMemory("InstructionMemory");
-    InstructionMemory.address(PCadress);
-    InstructionMemory.inst(IMinst);
+    instruction_memory instruction_memory("instruction_memory");
+    instruction_memory.address(PCaddress);
+    instruction_memory.inst(IMinst);
+
+    adder adder("adder");
+    adder.a(IMinst);
+    adder.b(IMinst);
+    adder.s(As);
+
 
     // # READ DATA FILE AND LOAD INTO DATA MEMORY #
     fstream instFs;
@@ -114,7 +96,7 @@ int sc_main(int argc, char *argv[]) {
     //    instFs.close();
     //
     //  # READ INSTRUCTION FILE AND LOAD INTO INSTRUCTION MEMORY #
-    instFs.open("instruction1.in");
+    instFs.open("instruction.in");
 
     // Checks if the file was found
     if (!instFs) {
@@ -125,7 +107,9 @@ int sc_main(int argc, char *argv[]) {
     // Loads all instructions into the memory
     string opcode_name = "";
     int reg1, reg2, dest;
+    sc_bv<32> inst;
 
+    int i = 0;
     // Checks if there is a instruction opCode in the line
     while (instFs >> opcode_name >> reg1 >> reg2 >> dest) {
         string instruction = "";
@@ -150,6 +134,17 @@ int sc_main(int argc, char *argv[]) {
         instruction += bitset<5>(reg2).to_string();
         instruction += bitset<5>(dest).to_string();
         instruction += bitset<11>(0).to_string();
+
+        std::cout << instruction << std::endl;
+        // Assign the binary string to the bit-vector
+        for (int j = 0; j < (int) instruction.size(); ++j){
+                inst[31-j] = instruction[j];
+        }
+
+        std::cout << inst << std::endl;
+
+        instruction_memory.memory[i] = inst;
+        i++;
     }
     instFs.close();
 
@@ -166,37 +161,45 @@ int sc_main(int argc, char *argv[]) {
     sc_trace(fp, clock, "0-0-clock");
 
     //  ## MEMORY ##
-    sc_trace(fp, DataMemory.memory[0], "DataMemory|0-memory");
-    sc_trace(fp, DataMemory.memory[1], "DataMemory|1-memory");
-    sc_trace(fp, DataMemory.memory[2], "DataMemory|2-memory");
-    sc_trace(fp, DataMemory.memory[3], "DataMemory|3-memory");
-    sc_trace(fp, DataMemory.memory[4], "DataMemory|4-memory");
-    sc_trace(fp, DataMemory.memory[5], "DataMemory|5-memory");
-    sc_trace(fp, DataMemory.memory[6], "DataMemory|6-memory");
-    sc_trace(fp, DataMemory.memory[7], "DataMemory|7-memory");
+    //sc_trace(fp, DataMemory.memory[0], "DataMemory|0-memory");
+    //sc_trace(fp, DataMemory.memory[1], "DataMemory|1-memory");
+    //sc_trace(fp, DataMemory.memory[2], "DataMemory|2-memory");
+    //sc_trace(fp, DataMemory.memory[3], "DataMemory|3-memory");
+    //sc_trace(fp, DataMemory.memory[4], "DataMemory|4-memory");
+    //sc_trace(fp, DataMemory.memory[5], "DataMemory|5-memory");
+    //sc_trace(fp, DataMemory.memory[6], "DataMemory|6-memory");
+    //sc_trace(fp, DataMemory.memory[7], "DataMemory|7-memory");
 
-    //  ## GIGDRegister $$
-    sc_trace(fp, GIGDRegister.opCodeIn, "GIGDRegister|1-1-opCodeIGI");
-    sc_trace(fp, GIGDRegister.regRead1In, "GIGDRegister|1-2-regRead1IGI");
-    sc_trace(fp, GIGDRegister.regRead2In, "GIGDRegister|1-3-regRead2IGI");
-    sc_trace(fp, GIGDRegister.regWriteIn, "GIGDRegister|1-4-regWriteIGI");
+    ////  ## GIGDRegister $$
+    //sc_trace(fp, GIGDRegister.opCodeIn, "GIGDRegister|1-1-opCodeIGI");
+    //sc_trace(fp, GIGDRegister.regRead1In, "GIGDRegister|1-2-regRead1IGI");
+    //sc_trace(fp, GIGDRegister.regRead2In, "GIGDRegister|1-3-regRead2IGI");
+    //sc_trace(fp, GIGDRegister.regWriteIn, "GIGDRegister|1-4-regWriteIGI");
 
-    sc_trace(fp, GIGDRegister.opCodeOut, "GIGDRegister|2-1-opCodeGIGD");
-    sc_trace(fp, GIGDRegister.regRead1Out, "GIGDRegister|2-2-regRead1GID");
-    sc_trace(fp, GIGDRegister.regRead2Out, "GIGDRegister|2-3-regRead2GID");
-    sc_trace(fp, GIGDRegister.regWriteOut, "GIGDRegister|2-4-regWriteGIGD");
+    //sc_trace(fp, GIGDRegister.opCodeOut, "GIGDRegister|2-1-opCodeGIGD");
+    //sc_trace(fp, GIGDRegister.regRead1Out, "GIGDRegister|2-2-regRead1GID");
+    //sc_trace(fp, GIGDRegister.regRead2Out, "GIGDRegister|2-3-regRead2GID");
+    //sc_trace(fp, GIGDRegister.regWriteOut, "GIGDRegister|2-4-regWriteGIGD");
 
-    // sc_trace(fp, GDEXRegister.opCodeIn,     "2-5-opCodeGIGD");
-    // sc_trace(fp, GDEXRegister.dataRead1In,  "2-6-dataRead1DGD");
-    // sc_trace(fp, GDEXRegister.dataRead2In,  "2-7-dataRead2DGD");
-    // sc_trace(fp, GDEXRegister.dataWriteIn,  "2-8-dataWriteAGD");
+    //// sc_trace(fp, GDEXRegister.opCodeIn,     "2-5-opCodeGIGD");
+    //// sc_trace(fp, GDEXRegister.dataRead1In,  "2-6-dataRead1DGD");
+    //// sc_trace(fp, GDEXRegister.dataRead2In,  "2-7-dataRead2DGD");
+    //// sc_trace(fp, GDEXRegister.dataWriteIn,  "2-8-dataWriteAGD");
 
-    sc_trace(fp, GDEXRegister.opCodeOut, "GDEXRegister|3-1-opCodeGDA");
-    sc_trace(fp, GDEXRegister.dataRead1Out, "GDEXRegister|3-2-dataRead1GDA");
-    sc_trace(fp, GDEXRegister.dataRead2Out, "GDEXRegister|3-3-dataRead2GDA");
-    sc_trace(fp, GDEXRegister.regWriteOut, "GDEXRegister|3-4-regWriteGDD");
-    sc_trace(fp, GDEXRegister.dataWriteOut, "GDEXRegister|3-4-dataWriteGDD");
+    //sc_trace(fp, GDEXRegister.opCodeOut, "GDEXRegister|3-1-opCodeGDA");
+    //sc_trace(fp, GDEXRegister.dataRead1Out, "GDEXRegister|3-2-dataRead1GDA");
+    //sc_trace(fp, GDEXRegister.dataRead2Out, "GDEXRegister|3-3-dataRead2GDA");
+    //sc_trace(fp, GDEXRegister.regWriteOut, "GDEXRegister|3-4-regWriteGDD");
+    //sc_trace(fp, GDEXRegister.dataWriteOut, "GDEXRegister|3-4-dataWriteGDD");
+    sc_trace(fp, program_counter.jump_address, "program_counter|0-1-jump_address");
+    sc_trace(fp, program_counter.address, "program_counter|0-2-address");
 
+    sc_trace(fp, instruction_memory.address, "instruction_memory|0-1-address");
+    sc_trace(fp, instruction_memory.inst, "instruction_memory|0-2-inst");
+
+    sc_trace(fp, adder.a, "adder|0-1-a");
+    sc_trace(fp, adder.b, "adder|0-2-b");
+    sc_trace(fp, adder.s, "adder|0-3-s");
     sc_start();
 
     sc_close_vcd_trace_file(fp);

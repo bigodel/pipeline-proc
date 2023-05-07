@@ -5,18 +5,20 @@ SC_MODULE(program_counter) {
     sc_in<int> jump_address;
     sc_out<int> address;
 
-    int current_address = 0;
+    // TODO: should not work... But it works
+    int current_address = -1;
+    //int current_address = 0;
 
     void increment() {
         int jump_addr = jump_address.read();
+
+        address.write(current_address);
 
         if (jump_addr) {
             current_address = jump_addr;
         } else {
             current_address++;
         }
-
-        address.write(current_address);
     }
 
     SC_CTOR(program_counter) {
