@@ -5,7 +5,7 @@ SC_MODULE(adder) {
     sc_in<WORD> a, b;
     sc_out<WORD> s;
 
-    void add() { 
+    void add() {
         WORD sum(a.read().to_int() + b.read().to_int());
         s.write(sum); 
     }

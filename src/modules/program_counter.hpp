@@ -1,18 +1,17 @@
 #include <systemc.h>
+#include "definitions.hpp"
 
 SC_MODULE(program_counter) {
     sc_in_clk clock;
-    sc_in<int> jump_address;
-    sc_out<int> address;
+    sc_in<WORD> jump_address;
+    sc_out<WORD> address;
 
-    // TODO: should not work... But it works
     int current_address = -1;
-    //int current_address = 0;
 
     void increment() {
-        int jump_addr = jump_address.read();
+        int jump_addr = jump_address.read().to_int();
 
-        address.write(current_address);
+        address.write(WORD(current_address));
 
         if (jump_addr) {
             current_address = jump_addr;

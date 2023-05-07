@@ -16,16 +16,15 @@ SC_MODULE(register_file) {
     WORD registers[REG_COUNT] = {0};
 
     void register_process() {
-        //std::cout << reg1.read().to_string() << std::endl;
-        //std::cout << reg1.read().range(25, 21).to_string() << std::endl;
-        //std::cout << reg2.read().range(20, 16).to_string() << std::endl;
-        //std::cout << write_reg.read().range(15, 11).to_string() << std::endl;
+        int rs = reg1.read().range(25, 21).to_int();
+        int rt = reg2.read().range(20, 16).to_int();
 
-        data1.write(registers[reg1.read().range(25, 21).to_int()]);
-        data2.write(registers[reg2.read().range(20, 16).to_int()]);
+        data1.write(registers[rs]);
+        data2.write(registers[rt]);
 
         if (reg_write.read() == true) {
-            registers[write_reg.read().range(15, 11).to_int()] = write_data.read();
+            int rd = write_reg.read().range(15, 11).to_int();
+            registers[rd] = write_data.read();
         }
     }
 

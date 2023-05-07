@@ -2,13 +2,13 @@
 #include "definitions.hpp"
 
 SC_MODULE(instruction_memory) {
-    sc_in<int> address;
+    sc_in<WORD> address;
     sc_out<WORD> inst;
 
     WORD memory[INST_COUNT] = {0};
 
     void read() {
-        inst.write(memory[address.read()]);
+        inst.write(memory[address.read().to_int()]);
     }
 
     SC_CTOR(instruction_memory) {
