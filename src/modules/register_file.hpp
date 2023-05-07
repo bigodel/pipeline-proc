@@ -13,7 +13,7 @@ SC_MODULE(register_file) {
     // output
     sc_out<WORD> data1, data2;
 
-    WORD registers[REG_COUNT] = {0};
+    WORD registers[REG_COUNT] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
 
     void register_process() {
         int rs = reg1.read().range(25, 21).to_int();

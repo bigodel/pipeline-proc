@@ -25,6 +25,7 @@ SC_MODULE(testbench) {
 #include "definitions.hpp"
 #include "modules/adder.hpp"
 #include "modules/if_id_reg.hpp"
+#include "modules/id_ex_reg.hpp"
 #include "modules/instruction_memory.hpp"
 #include "modules/mux.hpp"
 // #include "modules/alu.hpp"
@@ -46,7 +47,7 @@ int sc_main(int argc, char *argv[]) {
     // instruction memory
     sc_signal<WORD> im_inst;
     // IF stage adder
-    sc_signal<WORD> if_adder_4{"constant 4", WORD(4)};
+    sc_signal<WORD> if_adder_4{"constant_4", WORD(4)};
     sc_signal<WORD> if_adder_s;
     // IF stage ----------------------------------------------------------------
 
@@ -60,6 +61,12 @@ int sc_main(int argc, char *argv[]) {
     // sign extender
     sc_signal<WORD> se_output;
     // ID stage ----------------------------------------------------------------
+
+    // ID/EX stage ----------------------------------------------------------------
+    sc_signal<WORD> id_ex_data1_out, id_ex_data2_out, 
+    id_ex_inst_15_0_out, id_ex_inst_20_16_out, id_ex_inst_15_11_out,
+    id_ex_adder_out;
+    // ID/EX stage ----------------------------------------------------------------
 
     // WB stage ----------------------------------------------------------------
     sc_signal<WORD> memwb_write_reg_out;
@@ -105,6 +112,21 @@ int sc_main(int argc, char *argv[]) {
     sign_extender.input(ifid_inst_out); // input
     sign_extender.output(se_output);    // output
 
+    id_ex_reg id_ex_reg("id_ex_reg");
+    id_ex_reg.clock(clock);            // input
+    id_ex_reg.data1_in(rf_data1);
+    id_ex_reg.data2_in(rf_data2);
+    id_ex_reg.data1_out(id_ex_data1_out);
+    id_ex_reg.data2_out(id_ex_data2_out);
+    id_ex_reg.inst_15_0_in(se_output);
+    id_ex_reg.inst_20_16_in(ifid_inst_out);
+    id_ex_reg.inst_15_11_in(ifid_inst_out);
+    id_ex_reg.inst_15_0_out(id_ex_inst_15_0_out);
+    id_ex_reg.inst_20_16_out(id_ex_inst_20_16_out);
+    id_ex_reg.inst_15_11_out(id_ex_inst_15_11_out);
+    id_ex_reg.adder_in(if_adder_s);
+    id_ex_reg.adder_out(id_ex_adder_out);
+
     // # READ DATA FILE AND LOAD INTO DATA MEMORY #
     fstream instFs;
     //
@@ -116,7 +138,7 @@ int sc_main(int argc, char *argv[]) {
     //        return 1;
     //    }
     //
-    //    // Loads all instructions into the memory
+    //    // Loads all data into the memory
     //    int dest = 0;
     //    while (instFs >> dest) {
     //        instFs >> DataMemory.memory[dest];
@@ -184,39 +206,7 @@ int sc_main(int argc, char *argv[]) {
 
     sc_trace(fp, clock, "0-0-clock");
 
-    //  ## MEMORY ##
-    // sc_trace(fp, DataMemory.memory[0], "DataMemory|0-memory");
-    // sc_trace(fp, DataMemory.memory[1], "DataMemory|1-memory");
-    // sc_trace(fp, DataMemory.memory[2], "DataMemory|2-memory");
-    // sc_trace(fp, DataMemory.memory[3], "DataMemory|3-memory");
-    // sc_trace(fp, DataMemory.memory[4], "DataMemory|4-memory");
-    // sc_trace(fp, DataMemory.memory[5], "DataMemory|5-memory");
-    // sc_trace(fp, DataMemory.memory[6], "DataMemory|6-memory");
-    // sc_trace(fp, DataMemory.memory[7], "DataMemory|7-memory");
-
-    ////  ## GIGDRegister $$
-    // sc_trace(fp, GIGDRegister.opCodeIn, "GIGDRegister|1-1-opCodeIGI");
-    // sc_trace(fp, GIGDRegister.regRead1In, "GIGDRegister|1-2-regRead1IGI");
-    // sc_trace(fp, GIGDRegister.regRead2In, "GIGDRegister|1-3-regRead2IGI");
-    // sc_trace(fp, GIGDRegister.regWriteIn, "GIGDRegister|1-4-regWriteIGI");
-
-    // sc_trace(fp, GIGDRegister.opCodeOut, "GIGDRegister|2-1-opCodeGIGD");
-    // sc_trace(fp, GIGDRegister.regRead1Out, "GIGDRegister|2-2-regRead1GID");
-    // sc_trace(fp, GIGDRegister.regRead2Out, "GIGDRegister|2-3-regRead2GID");
-    // sc_trace(fp, GIGDRegister.regWriteOut, "GIGDRegister|2-4-regWriteGIGD");
-
-    //// sc_trace(fp, GDEXRegister.opCodeIn,     "2-5-opCodeGIGD");
-    //// sc_trace(fp, GDEXRegister.dataRead1In,  "2-6-dataRead1DGD");
-    //// sc_trace(fp, GDEXRegister.dataRead2In,  "2-7-dataRead2DGD");
-    //// sc_trace(fp, GDEXRegister.dataWriteIn,  "2-8-dataWriteAGD");
-
-    // sc_trace(fp, GDEXRegister.opCodeOut, "GDEXRegister|3-1-opCodeGDA");
-    // sc_trace(fp, GDEXRegister.dataRead1Out, "GDEXRegister|3-2-dataRead1GDA");
-    // sc_trace(fp, GDEXRegister.dataRead2Out, "GDEXRegister|3-3-dataRead2GDA");
-    // sc_trace(fp, GDEXRegister.regWriteOut, "GDEXRegister|3-4-regWriteGDD");
-    // sc_trace(fp, GDEXRegister.dataWriteOut, "GDEXRegister|3-4-dataWriteGDD");
-    sc_trace(fp, program_counter.jump_address,
-             "program_counter|0-1-jump_address");
+    sc_trace(fp, program_counter.jump_address, "program_counter|0-1-jump_address");
     sc_trace(fp, program_counter.address, "program_counter|0-2-address");
 
     sc_trace(fp, instruction_memory.address, "instruction_memory|0-1-address");
@@ -236,9 +226,23 @@ int sc_main(int argc, char *argv[]) {
     sc_trace(fp, sign_extender.input, "sign_extender|0-1-input");
     sc_trace(fp, sign_extender.output, "sign_extender|0-2-output");
 
-    // sc_trace(fp, adder.a, "adder|0-1-a");
-    // sc_trace(fp, adder.b, "adder|0-2-b");
-    // sc_trace(fp, adder.s, "adder|0-3-s");
+    sc_trace(fp, if_adder.a, "if_adder|0-1-a");
+    sc_trace(fp, if_adder.b, "if_adder|0-2-b");
+    sc_trace(fp, if_adder.s, "if_adder|0-3-s");
+
+    sc_trace(fp, id_ex_reg.data1_in, "id_ex_reg|1-1-data1_in");
+    sc_trace(fp, id_ex_reg.data2_in, "id_ex_reg|1-2-data2_in");
+    sc_trace(fp, id_ex_reg.data1_out, "id_ex_reg|1-3-data1_out");
+    sc_trace(fp, id_ex_reg.data2_out, "id_ex_reg|1-4-data2_out");
+    sc_trace(fp, id_ex_reg.inst_15_0_in, "id_ex_reg|1-5-inst_15_0_in");
+    sc_trace(fp, id_ex_reg.inst_20_16_in, "id_ex_reg|1-6-inst_20_16_in");
+    sc_trace(fp, id_ex_reg.inst_15_11_in, "id_ex_reg|1-7-inst_15_11_in");
+    sc_trace(fp, id_ex_reg.inst_15_0_out, "id_ex_reg|1-8-inst_15_0_out");
+    sc_trace(fp, id_ex_reg.inst_20_16_out, "id_ex_reg|1-9-inst_20_16_out");
+    sc_trace(fp, id_ex_reg.inst_15_11_out, "id_ex_reg|1-10-inst_15_11_out");
+    sc_trace(fp, id_ex_reg.adder_in, "id_ex_reg|1-11-adder_in");
+    sc_trace(fp, id_ex_reg.adder_out, "id_ex_reg|1-11-adder_out");
+
     sc_start();
 
     sc_close_vcd_trace_file(fp);
