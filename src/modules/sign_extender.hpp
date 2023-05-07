@@ -2,7 +2,7 @@
 #include "definitions.hpp"
 
 SC_MODULE(sign_extender) {
-    sc_in<sc_uint<16>> input;
+    sc_in<IMM> input;
     sc_out<WORD> output;
 
     void extend() {

@@ -53,7 +53,7 @@ int sc_main(int argc, char* argv[]) {
     sc_signal<int> dataRead1DGD, dataRead2DGD;
 
     // gd_ex_register to alu (GDA)
-    sc_signal<int> dataRead1GDA, dataRead2GDA;
+    sc_signal<int> alu_a, dataRead2GDA;
 
     // alu to gd_ex_register (AGD)
     sc_signal<int> dataWriteAGD;
@@ -111,18 +111,18 @@ int sc_main(int argc, char* argv[]) {
     GDEXRegister.dataWriteIn(dataWriteAGD);
     // -- OutPut --
     GDEXRegister.opCodeOut(opCodeGDA);
-    GDEXRegister.dataRead1Out(dataRead1GDA);
+    GDEXRegister.dataRead1Out(alu_a);
     GDEXRegister.dataRead2Out(dataRead2GDA);
     GDEXRegister.regWriteOut(regWriteGDD);
     GDEXRegister.dataWriteOut(dataWriteGDD);
 
     alu Alu ("Alu");
     //  -- Input --
-    Alu.opCode(opCodeGDA);
-    Alu.dataRead1(dataRead1GDA);
-    Alu.dataRead2(dataRead2GDA);
+    Alu.command(opCodeGDA);
+    Alu.a(alu_a);
+    Alu.b(dataRead2GDA);
     //  -- OutPut --
-    Alu.dataWrite(dataWriteAGD);
+    Alu.result(dataWriteAGD);
 
     // # READ DATA FILE AND LOAD INTO DATA MEMORY #
     fstream instFs;
