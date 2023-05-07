@@ -29,7 +29,7 @@ SC_MODULE(testbench) {
 #include "modules/mux.hpp"
 //#include "modules/alu.hpp"
 #include "modules/program_counter.hpp"
-//#include "modules/register_file.hpp"
+#include "modules/register_file.hpp"
 
 // #include "modules/data_memory.hpp"
 // #include "modules/gi_gd_register.hpp"
@@ -46,6 +46,8 @@ int sc_main(int argc, char *argv[]) {
 
     sc_signal<WORD> IMinst;
 
+    sc_signal<WORD> IFIDinst;
+
     sc_signal<WORD> ADs;
 
     // sc_signal<WORD> muxa;
@@ -53,10 +55,8 @@ int sc_main(int argc, char *argv[]) {
 
     sc_signal<WORD> IFIDaddress_out;
 
-    sc_signal<WORD> RFreg1;
-    sc_signal<WORD> RFreg2;
+    sc_signal<WORD> RFdata1, RFdata2;
 
-    sc_signal<WORD> As;
 
     //          ### COMPONENTS ###
 
@@ -71,10 +71,26 @@ int sc_main(int argc, char *argv[]) {
     instruction_memory.address(PCaddress);
     instruction_memory.inst(IMinst);
 
-    adder adder("adder");
-    adder.a(IMinst);
-    adder.b(IMinst);
-    adder.s(As);
+    if_id_reg if_id_reg("if_id_reg");
+    if_id_reg.clock(clock);
+    if_id_reg.inst_in(IMinst);
+    if_id_reg.inst_out(IFIDinst);
+
+    register_file register_file("register_file");
+    register_file.reg1(IFIDinst);
+    register_file.reg2(IFIDinst);
+    register_file.write_reg(IFIDinst);
+    sc_signal<WORD> blah;
+    sc_signal<bool> blah1;
+    register_file.write_data(blah);
+    register_file.reg_write(blah1);
+    register_file.data1(RFdata1);
+    register_file.data2(RFdata2);
+
+    //adder adder("adder");
+    //adder.a(IMinst);
+    //adder.b(IMinst);
+    //adder.s(As);
 
 
     // # READ DATA FILE AND LOAD INTO DATA MEMORY #
@@ -135,13 +151,13 @@ int sc_main(int argc, char *argv[]) {
         instruction += bitset<5>(dest).to_string();
         instruction += bitset<11>(0).to_string();
 
-        std::cout << instruction << std::endl;
+        //std::cout << instruction << std::endl;
         // Assign the binary string to the bit-vector
         for (int j = 0; j < (int) instruction.size(); ++j){
                 inst[31-j] = instruction[j];
         }
 
-        std::cout << inst << std::endl;
+        //std::cout << inst << std::endl;
 
         instruction_memory.memory[i] = inst;
         i++;
@@ -197,9 +213,20 @@ int sc_main(int argc, char *argv[]) {
     sc_trace(fp, instruction_memory.address, "instruction_memory|0-1-address");
     sc_trace(fp, instruction_memory.inst, "instruction_memory|0-2-inst");
 
-    sc_trace(fp, adder.a, "adder|0-1-a");
-    sc_trace(fp, adder.b, "adder|0-2-b");
-    sc_trace(fp, adder.s, "adder|0-3-s");
+    sc_trace(fp, if_id_reg.inst_in, "if_id_reg|0-1-inst_in");
+    sc_trace(fp, if_id_reg.inst_out, "if_id_reg|0-2-inst_out");
+
+    sc_trace(fp, register_file.reg1, "register_file|0-1-reg1");
+    sc_trace(fp, register_file.reg2, "register_file|0-2-reg2");
+    sc_trace(fp, register_file.write_reg, "register_file|0-3-write_reg");
+    sc_trace(fp, register_file.write_data, "register_file|0-4-write_data");
+    sc_trace(fp, register_file.reg_write, "register_file|0-5-reg_write");
+    sc_trace(fp, register_file.data1, "register_file|0-6-data1");
+    sc_trace(fp, register_file.data2, "register_file|0-7-data2");
+
+    //sc_trace(fp, adder.a, "adder|0-1-a");
+    //sc_trace(fp, adder.b, "adder|0-2-b");
+    //sc_trace(fp, adder.s, "adder|0-3-s");
     sc_start();
 
     sc_close_vcd_trace_file(fp);
