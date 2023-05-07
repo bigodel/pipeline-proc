@@ -1,7 +1,7 @@
 #include "definitions.hpp"
-#include "systemc.h"
+#include <systemc.h>
 
-SC_MODULE(mux2x1) {
+SC_MODULE(mux) {
     sc_in<bool> sel;
     sc_in<WORD> a, b;
     sc_out<WORD> out;
@@ -11,7 +11,7 @@ SC_MODULE(mux2x1) {
         else out.write(b.read());
     }
 
-    SC_CTOR(mux2x1) {
+    SC_CTOR(mux) {
         SC_METHOD(select);
         sensitive << sel << a << b;
     }

@@ -2,41 +2,61 @@
 #include "systemc.h"
 
 SC_MODULE(alu) {
+    // input
     sc_in<WORD> a, b;
-    sc_in<int> command; // switch case doesn't allow sc_uint
+
+    // control signal
+    sc_in<ALU_OP> alu_op; // switch case doesn't allow sc_uint
+
+    // outputs
     sc_out<WORD> result;
+    sc_out<bool> zero;
 
     void process() {
-        switch (command.read()) {
+        WORD res;
+        bool is_zero = false;
+
+        switch (alu_op.read()) {
         case ADD:
-            result.write(a.read() + b.read());
+            res = a.read() + b.read();
+            is_zero = res == 0;
             break;
         case SUB:
-            result.write(a.read() - b.read());
+            res = a.read() - b.read();
+            is_zero = res == 0;
             break;
         case AND:
-            result.write(a.read() & b.read());
+            res = a.read() & b.read();
+            is_zero = res == 0;
             break;
         case OR:
-            result.write(a.read() | b.read());
+            res = a.read() | b.read();
+            is_zero = res == 0;
             break;
         case XOR:
-            result.write(a.read() ^ b.read());
+            res = a.read() ^ b.read();
+            is_zero = res == 0;
             break;
         case NOT:
-            result.write(~a.read());
+            res = ~a.read();
+            is_zero = res == 0;
             break;
         case CMP:
-            result.write(a.read() < b.read());
+            res = a.read() < b.read();
+            is_zero = res == 0;
             break;
         default:
-            result.write(0);
+            res = 0;
+            is_zero = true;
             break;
         }
+
+        result.write(res);
+        zero.write(is_zero);
     }
 
     SC_CTOR(alu) {
         SC_METHOD(process);
-        sensitive << a << b << command;
+        sensitive << a << b << alu_op;
     }
 };

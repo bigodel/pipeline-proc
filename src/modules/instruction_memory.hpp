@@ -1,17 +1,14 @@
-#include "systemc.h"
+#include <systemc.h>
 #include "definitions.hpp"
 
 SC_MODULE(instruction_memory) {
     sc_in<int> address;
-    sc_out<int> opCode, regRead1, regRead2, regWrite;
+    sc_out<WORD> inst;
 
-    inst memory[INST_COUNT] = {{9, 9, 9, 9}};
+    WORD memory[INST_COUNT] = {0};
 
-    void read() { 
-        opCode.write(memory[address.read()].opCode); 
-        regRead1.write(memory[address.read()].regRead1); 
-        regRead2.write(memory[address.read()].regRead2); 
-        regWrite.write(memory[address.read()].regWrite); 
+    void read() {
+        inst.write(memory[address.read()]);
     }
 
     SC_CTOR(instruction_memory) {

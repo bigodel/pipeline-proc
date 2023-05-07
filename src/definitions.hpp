@@ -6,11 +6,11 @@
 #define OP sc_uint<6>
 #define ADDR sc_uint<5>
 #define IMM sc_uint<16>
+#define ALU_OP sc_int<3>
 
 // constants
 #define INST_COUNT 256
 #define REG_COUNT 32
-
 
 // alu ops
 #define ADD 0b000

@@ -13,7 +13,7 @@ SC_MODULE(gd_ex_register) {
         memory[1] = dataRead1In.read();
         memory[2] = dataRead2In.read();
         memory[3] = dataWriteIn.read();
-        memory[4] = regWriteIn.read();
+        // memory[4] = regWriteIn.read();
 
         // Write
         opCodeOut.write(memory[0]);

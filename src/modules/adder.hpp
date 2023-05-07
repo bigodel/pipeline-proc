@@ -1,14 +1,14 @@
 #include "definitions.hpp"
-#include "systemc.h"
+#include <systemc.h>
 
 SC_MODULE(adder) {
-    sc_in<WORD> A, B;
-    sc_out<WORD> S;
+    sc_in<WORD> a, b;
+    sc_out<WORD> s;
 
-    void add() { S.write(A.read() + B.read()); }
+    void add() { s.write(a.read() + b.read()); }
 
     SC_CTOR(adder) {
         SC_METHOD(add);
-        sensitive << A << B;
+        sensitive << a << b;
     }
 };

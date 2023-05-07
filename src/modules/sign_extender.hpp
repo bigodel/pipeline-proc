@@ -1,4 +1,4 @@
-#include "systemc.h"
+#include <systemc.h>
 #include "definitions.hpp"
 
 SC_MODULE(sign_extender) {

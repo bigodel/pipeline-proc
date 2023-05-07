@@ -1,26 +1,30 @@
-#include "systemc.h"
+#include "definitions.hpp"
+#include <systemc.h>
 
 SC_MODULE(data_memory) {
-    sc_in<int> regRead1, regRead2, regWrite, dataWrite;
-    sc_out<int> dataRead1, dataRead2;
+    // input
+    sc_in<ADDR> address;
+    sc_in<WORD> write_data;
 
-    // Increase this number
-    int memory[10] = {0};
+    // control signals
+    sc_in<bool> mem_write, mem_read;
 
-    void read() {
-        dataRead1.write(memory[regRead1.read()]);
-        dataRead2.write(memory[regRead2.read()]);
-    }
+    // output
+    sc_out<WORD> data;
 
-    void write() {
-        memory[regWrite.read()] = dataWrite.read();
+    // actual memory
+    WORD memory[1024] = {0};
+
+    void mem_access() {
+        // TODO: check if we need to divide by 4
+        if (mem_read.read())
+            data.write(memory[address.read()]);
+        if (mem_write.read())
+            memory[address.read()] = write_data.read();
     }
 
     SC_CTOR(data_memory) {
-        SC_METHOD(read);
-        sensitive << regRead1 << regRead2;
-
-        SC_METHOD(write);
-        sensitive << regWrite << dataWrite;
+        SC_METHOD(mem_access);
+        sensitive << address << write_data << data;
     }
 };
