@@ -1,24 +1,24 @@
-#include <systemc.h>
 #include "definitions.hpp"
+#include <systemc.h>
 
 SC_MODULE(ex_mem_reg) {
     sc_in_clk clock;
 
-    // inputs 
-    sc_in<WORD> adder_in, alu_result_in,
-    st_mux_in, data2_in;
-    sc_in<bool> alu_zero_in;
-    // sc_in<WORD> program_counter;
+    // inputs
+    sc_in<WORD> adder_in, alu_result_in, st_mux_in, data2_in;
 
     // control signals
-    // sc_in<bool> flush;
+    // M
+    sc_in<bool> alu_zero_in, branch_in, mem_write_in, mem_read_in;
+    sc_out<bool> alu_zero_out, branch_out, mem_write_out, mem_read_out;
+    // WB
+    sc_in<bool> mem_to_reg_in, pc_src_in;
+    sc_out<bool> mem_to_reg_out, pc_src_out;
 
     // output
     sc_out<WORD> adder_out, alu_result_out, st_mux_out, data2_out;
-    sc_out<bool> alu_zero_out;
 
-    WORD memory[4] = {0};
-    bool alu_zero_mem = 0;
+    WORD memory[10] = {0};
 
     void read() {
         // read
@@ -27,7 +27,15 @@ SC_MODULE(ex_mem_reg) {
         memory[2] = data2_in.read();
         memory[3] = st_mux_in.read();
 
-        alu_zero_mem = alu_zero_in.read();
+        // control signals
+        // M
+        memory[4] = alu_zero_in.read();
+        memory[5] = branch_in.read();
+        memory[6] = mem_write_in.read();
+        memory[7] = mem_read_in.read();
+        // WB
+        memory[8] = pc_src_in.read();
+        memory[9] = mem_to_reg_in.read();
     }
 
     void write() {
@@ -37,7 +45,15 @@ SC_MODULE(ex_mem_reg) {
         data2_out.write(memory[2]);
         st_mux_out.write(memory[3]);
 
-        alu_zero_out.write(alu_zero_mem);
+        // control signals
+        // M
+        alu_zero_out.write(memory[4].to_int());
+        branch_out.write(memory[5].to_int());
+        mem_write_out.write(memory[6].to_int());
+        mem_read_out.write(memory[7].to_int());
+        // WB
+        pc_src_out.write(memory[3].to_int());
+        mem_to_reg_out.write(memory[4].to_int());
     }
 
     SC_CTOR(ex_mem_reg) {

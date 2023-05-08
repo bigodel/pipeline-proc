@@ -16,47 +16,46 @@ SC_MODULE(alu) {
         WORD res;
         bool is_zero = false;
 
-        if(alu_op.read() == ADD) {
+        if (alu_op.read() == ADD) {
             WORD add(a.read().to_int() + b.read().to_int());
             res = add;
             is_zero = res == 0;
         }
-        if(alu_op.read() == SUB) {
+        if (alu_op.read() == SUB) {
             WORD sub(a.read().to_int() - b.read().to_int());
             res = sub;
             is_zero = res == 0;
         }
-        if(alu_op.read() == AND) {
+        if (alu_op.read() == AND) {
             res = a.read() & b.read();
             is_zero = res == 0;
         }
-        if(alu_op.read() == OR) {
+        if (alu_op.read() == OR) {
             res = a.read() | b.read();
             is_zero = res == 0;
         }
-        if(alu_op.read() == XOR) {
+        if (alu_op.read() == XOR) {
             res = a.read() ^ b.read();
             is_zero = res == 0;
         }
-        if(alu_op.read() == NOT) {
+        if (alu_op.read() == NOT) {
             res = ~a.read();
             is_zero = res == 0;
         }
-        if(alu_op.read() == CMP) {
+        if (alu_op.read() == CMP) {
             res = a.read().to_int() < b.read().to_int();
             is_zero = res == 0;
-        }
-        else{
+        } else {
             res = 0;
             is_zero = true;
         }
 
-    result.write(res);
-    zero.write(is_zero);
-}
+        result.write(res);
+        zero.write(is_zero);
+    }
 
-SC_CTOR(alu) {
-    SC_METHOD(process);
-    sensitive << a << b << alu_op;
-}
+    SC_CTOR(alu) {
+        SC_METHOD(process);
+        sensitive << a << b << alu_op;
+    }
 };
