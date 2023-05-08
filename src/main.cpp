@@ -326,24 +326,24 @@ int sc_main(int argc, char *argv[]) {
     wb_mux.out(wb_mux_out);
 
     // # READ DATA FILE AND LOAD INTO DATA MEMORY #
+    // fstream data_file;
+    // data_file.open("data.in");
+
+    // // Checks if the file was found
+    // if (!data_file) {
+    //     cerr << "Error: file could not be opened" << endl;
+    //     return 1;
+    // }
+
+    // // Loads all data into the memory
+    // int dest = 0;
+    // while (data_file >> dest) {
+    //     data_file >> data_memory.memory[dest];
+    // }
+    // data_file.close();
+
+    // # READ INSTRUCTION FILE AND LOAD INTO INSTRUCTION MEMORY #
     fstream inst_file;
-    //
-    //    instFs.open("data.in");
-    //
-    //    // Checks if the file was found
-    //    if(!instFs) {
-    //        cerr << "Error: file could not be opened" << endl;
-    //        return 1;
-    //    }
-    //
-    //    // Loads all data into the memory
-    //    int dest = 0;
-    //    while (instFs >> dest) {
-    //        instFs >> DataMemory.memory[dest];
-    //    }
-    //    instFs.close();
-    //
-    //  # READ INSTRUCTION FILE AND LOAD INTO INSTRUCTION MEMORY #
     inst_file.open("instruction.in");
 
     // Checks if the file was found
@@ -455,8 +455,7 @@ int sc_main(int argc, char *argv[]) {
 
             inst_file >> rs >> rt >> imm;
 
-            instruction =
-                (instruction, REG_ADDR(rs), REG_ADDR(rt), IMM(imm));
+            instruction = (instruction, REG_ADDR(rs), REG_ADDR(rt), IMM(imm));
         } else if (jtype) {
             int addr;
 

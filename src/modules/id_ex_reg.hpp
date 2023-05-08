@@ -67,12 +67,12 @@ SC_MODULE(id_ex_reg) {
         alu_src_out.write(memory[7].to_int());
         alu_op_out.write(memory[8]);
         // M
-        branch_out.write(memory[10].to_int());
-        mem_write_out.write(memory[11].to_int());
-        mem_read_out.write(memory[12].to_int());
+        branch_out.write(memory[9].to_int());
+        mem_write_out.write(memory[10].to_int());
+        mem_read_out.write(memory[11].to_int());
         // WB
-        reg_write_out.write(memory[13].to_int());
-        mem_to_reg_out.write(memory[14].to_int());
+        reg_write_out.write(memory[12].to_int());
+        mem_to_reg_out.write(memory[13].to_int());
     }
 
     SC_CTOR(id_ex_reg) {
