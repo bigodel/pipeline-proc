@@ -65,6 +65,18 @@ int sc_main(int argc, char *argv[]) {
     sc_signal<WORD> rf_data2;
     // sign extender
     sc_signal<WORD> se_output;
+    // control signals
+    // EX
+    sc_signal<ALU_OP> alu_op;
+    sc_signal<bool> alu_src;
+    sc_signal<bool> reg_dst;
+    // M
+    sc_signal<bool> branch;
+    sc_signal<bool> mem_write;
+    sc_signal<bool> mem_read;
+    // WB
+    sc_signal<bool> mem_to_reg;
+    sc_signal<bool> reg_write;
     // ID stage ----------------------------------------------------------------
 
     // ID/EX register
@@ -74,7 +86,6 @@ int sc_main(int argc, char *argv[]) {
     sc_signal<WORD> id_ex_inst_15_0_out;
     sc_signal<WORD> id_ex_inst_20_16_out;
     sc_signal<WORD> id_ex_inst_15_11_out;
-
     // control signals
     // EX
     sc_signal<ALU_OP> id_ex_alu_op_out;
@@ -82,7 +93,6 @@ int sc_main(int argc, char *argv[]) {
     sc_signal<bool> id_ex_reg_dst_out;
     // M
     sc_signal<bool> id_ex_branch_out;
-    sc_signal<bool> id_ex_alu_zero_out;
     sc_signal<bool> id_ex_mem_write_out;
     sc_signal<bool> id_ex_mem_read_out;
     // WB
@@ -121,7 +131,7 @@ int sc_main(int argc, char *argv[]) {
 
     // MEM stage ---------------------------------------------------------------
     // control signals
-    sc_signal<bool> ctrl_pc_src;
+    sc_signal<bool> pc_src;
     sc_signal<WORD> mem_data;
     // MEM stage ---------------------------------------------------------------
 
@@ -156,7 +166,7 @@ int sc_main(int argc, char *argv[]) {
     mux if_mux("if_mux");
     if_mux.a(if_adder_s);             // input
     if_mux.b(ex_mem_alu_adder_s_out); // input
-    if_mux.sel(ctrl_pc_src);          // input
+    if_mux.sel(pc_src);               // input
     if_mux.out(if_mux_jump_address);  // output
 
     if_id_reg if_id_reg("if_id_reg");
@@ -192,6 +202,32 @@ int sc_main(int argc, char *argv[]) {
     id_ex_reg.inst_15_0_out(id_ex_inst_15_0_out);
     id_ex_reg.inst_20_16_out(id_ex_inst_20_16_out);
     id_ex_reg.inst_15_11_out(id_ex_inst_15_11_out);
+
+    // control signals
+    // EX
+    id_ex_reg.alu_op_in(alu_op);
+    id_ex_reg.alu_op_out(id_ex_alu_op_out);
+
+    id_ex_reg.alu_src_in(alu_src);
+    id_ex_reg.alu_src_out(id_ex_alu_src_out);
+
+    id_ex_reg.reg_dst_in(reg_dst);
+    id_ex_reg.reg_dst_out(id_ex_reg_dst_out);
+    // M
+    id_ex_reg.branch_in(branch);
+    id_ex_reg.branch_out(id_ex_branch_out);
+
+    id_ex_reg.mem_write_in(mem_write);
+    id_ex_reg.mem_write_out(id_ex_mem_write_out);
+
+    id_ex_reg.mem_read_in(mem_read);
+    id_ex_reg.mem_read_out(id_ex_mem_read_out);
+    // WB
+    id_ex_reg.mem_to_reg_in(mem_to_reg);
+    id_ex_reg.mem_to_reg_out(id_ex_mem_to_reg_out);
+
+    id_ex_reg.reg_write_in(reg_write);
+    id_ex_reg.reg_write_out(id_ex_reg_write_out);
 
     shift_left_2 shift_left_2("shift_left_2");
     shift_left_2.in(id_ex_inst_15_0_out); // input
@@ -256,7 +292,6 @@ int sc_main(int argc, char *argv[]) {
     ex_mem_reg.reg_write_in(id_ex_reg_write_out);
     ex_mem_reg.reg_write_out(ex_mem_reg_write_out);
 
-
     data_memory data_memory("data_memory");
     data_memory.address(ex_mem_alu_result_out);
     data_memory.write_data(ex_mem_data2_out);
@@ -276,6 +311,7 @@ int sc_main(int argc, char *argv[]) {
     mem_wb_reg.st_mux_out(mem_wb_st_mux_out);
 
     // control signals
+    // WB
     mem_wb_reg.mem_to_reg_in(ex_mem_mem_to_reg_out);
     mem_wb_reg.mem_to_reg_out(mem_wb_mem_to_reg_out);
 
@@ -367,7 +403,8 @@ int sc_main(int argc, char *argv[]) {
 
     sc_trace(fp, clock, "0-0-clock");
 
-    sc_trace(fp, program_counter.jump_address, "program_counter|0-1-jump_address");
+    sc_trace(fp, program_counter.jump_address,
+             "program_counter|0-1-jump_address");
     sc_trace(fp, program_counter.address, "program_counter|0-2-address");
 
     sc_trace(fp, instruction_memory.address, "instruction_memory|0-1-address");
