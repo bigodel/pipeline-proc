@@ -25,12 +25,15 @@ SC_MODULE(testbench) {
 #include "definitions.hpp"
 #include "modules/adder.hpp"
 #include "modules/alu.hpp"
-#include "modules/id_ex_reg.hpp"
 #include "modules/if_id_reg.hpp"
+#include "modules/id_ex_reg.hpp"
+#include "modules/ex_mem_reg.hpp"
+#include "modules/mem_wb_reg.hpp"
 #include "modules/instruction_memory.hpp"
 #include "modules/mux.hpp"
 #include "modules/program_counter.hpp"
 #include "modules/register_file.hpp"
+#include "modules/data_memory.hpp"
 #include "modules/shift_left_2.hpp"
 #include "modules/sign_extender.hpp"
 // #include "modules/data_memory.hpp"
@@ -65,7 +68,7 @@ int sc_main(int argc, char *argv[]) {
 
     // ID/EX register
     sc_signal<WORD> id_ex_data1_out, id_ex_data2_out, id_ex_inst_15_0_out,
-        id_ex_inst_20_16_out, id_ex_inst_15_11_out, id_ex_adder_out;
+    id_ex_inst_20_16_out, id_ex_inst_15_11_out, id_ex_adder_out;
     sc_signal<ALU_OP> id_ex_alu_op_out;
     sc_signal<bool> id_ex_alu_src_out, id_ex_reg_dst_out;
 
@@ -85,10 +88,21 @@ int sc_main(int argc, char *argv[]) {
 
     // EX/MEM register
     sc_signal<WORD> ex_mem_alu_adder_s_out;
+    sc_signal<WORD> ex_mem_adder_out, ex_mem_alu_result_out, 
+    ex_mem_st_mux_out, ex_mem_data2_out;
+    sc_signal<bool> ex_mem_alu_zero_out;
 
     // MEM stage ---------------------------------------------------------------
     // control signals
+
     sc_signal<bool> ctrl_pc_src;
+    sc_signal<WORD> mem_data;
+    sc_signal<bool> mem_mem_read, mem_mem_write;
+
+    // MEM/WB register
+    sc_signal<WORD> mem_wb_mem_data_out, mem_wb_alu_result_out, 
+    mem_wb_st_mux_out;
+
     // MEM stage ---------------------------------------------------------------
 
     // WB stage ----------------------------------------------------------------
@@ -178,6 +192,41 @@ int sc_main(int argc, char *argv[]) {
     ex_st_mux.b(id_ex_inst_15_11_out);
     ex_st_mux.sel(id_ex_reg_dst_out);
     ex_st_mux.out(ex_st_mux_out);
+
+    ex_mem_reg ex_mem_reg("ex_mem_reg");
+    ex_mem_reg.clock(clock);
+    ex_mem_reg.adder_in(ex_adder_s);
+    ex_mem_reg.adder_out(ex_mem_adder_out);
+
+    ex_mem_reg.alu_zero_in(alu_zero);
+    ex_mem_reg.alu_zero_out(ex_mem_alu_zero_out);
+
+    ex_mem_reg.alu_result_in(alu_result);
+    ex_mem_reg.alu_result_out(ex_mem_alu_result_out);
+
+    ex_mem_reg.data2_in(id_ex_data2_out);
+    ex_mem_reg.data2_out(ex_mem_data2_out);
+
+    ex_mem_reg.st_mux_in(ex_st_mux_out);
+    ex_mem_reg.st_mux_out(ex_mem_st_mux_out);
+
+    data_memory data_memory("data_memory");
+    data_memory.address(ex_mem_alu_result_out);
+    data_memory.write_data(ex_mem_data2_out);
+    data_memory.data(mem_data);
+    data_memory.mem_read(mem_mem_read);
+    data_memory.mem_write(mem_mem_write);
+
+    mem_wb_reg mem_wb_reg("mem_wb_reg");
+    mem_wb_reg.clock(clock);
+    mem_wb_reg.mem_data_in(mem_data);
+    mem_wb_reg.mem_data_out(mem_wb_mem_data_out);
+
+    mem_wb_reg.alu_result_in(ex_mem_alu_result_out);
+    mem_wb_reg.alu_result_out(mem_wb_alu_result_out);
+
+    mem_wb_reg.st_mux_in(ex_mem_st_mux_out);
+    mem_wb_reg.st_mux_out(mem_wb_st_mux_out);
 
     // # READ DATA FILE AND LOAD INTO DATA MEMORY #
     fstream instFs;
