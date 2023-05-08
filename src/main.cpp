@@ -10,6 +10,7 @@ using namespace std;
 #include "definitions.hpp"
 #include "modules/adder.hpp"
 #include "modules/alu.hpp"
+#include "modules/and.hpp"
 #include "modules/control.hpp"
 #include "modules/data_memory.hpp"
 #include "modules/ex_mem_reg.hpp"
@@ -185,7 +186,6 @@ int sc_main(int argc, char *argv[]) {
     // M
     control.mem_write(mem_write);
     control.mem_read(mem_read);
-    control.pc_src(pc_src);
     // WB
     control.reg_write(reg_write);
     control.mem_to_reg(mem_to_reg);
@@ -307,6 +307,11 @@ int sc_main(int argc, char *argv[]) {
 
     ex_mem_reg.reg_write_in(id_ex_reg_write_out);
     ex_mem_reg.reg_write_out(ex_mem_reg_write_out);
+
+    and_gate and_gate("and_gate");
+    and_gate.a(ex_mem_branch_out);
+    and_gate.b(ex_mem_alu_zero_out);
+    and_gate.out(pc_src);
 
     data_memory data_memory("data_memory");
     data_memory.address(ex_mem_alu_result_out);
@@ -472,6 +477,7 @@ int sc_main(int argc, char *argv[]) {
 
             instruction = (instruction, REG_ADDR(rs), REG_ADDR(rt), IMM(imm));
         } else if (jtype) {
+            // TODO: this is probably wrong
             int addr;
 
             inst_file >> addr;

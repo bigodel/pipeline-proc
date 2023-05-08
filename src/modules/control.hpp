@@ -15,7 +15,7 @@ SC_MODULE(control) {
     sc_out<bool> mem_write, mem_read;
 
     // muxes output
-    sc_out<bool> pc_src, alu_src, reg_dst, mem_to_reg;
+    sc_out<bool> alu_src, reg_dst, mem_to_reg;
 
     void run() {
         // auxiliary values
@@ -26,7 +26,7 @@ SC_MODULE(control) {
         // M
         bool _mem_write = false;
         bool _mem_read = false;
-        bool _pc_src = false;
+        // bool _pc_src = false;
         // WB
         bool _reg_write = false;
         bool _mem_to_reg = false;
@@ -72,7 +72,6 @@ SC_MODULE(control) {
             // // M
             // mem_write.write();
             // mem_read.write();
-            // pc_src.write();
             // // WB
             // reg_write.write();
             // mem_to_reg.write();
@@ -85,7 +84,6 @@ SC_MODULE(control) {
             // M
             mem_write.write(_mem_write);
             mem_read.write(_mem_read);
-            pc_src.write(_pc_src);
             // WB
             reg_write.write(_reg_write);
             mem_to_reg.write(_mem_to_reg);
