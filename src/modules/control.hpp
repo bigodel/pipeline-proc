@@ -33,34 +33,38 @@ SC_MODULE(control) {
         WORD inst = instruction.read();
         OP opcode = inst.range(31, 26);
         switch (opcode.to_int()) {
-        case OP_AND: // r-type instructions
-        case OP_OR:
-        case OP_XOR:
-        case OP_NOT:
-        case OP_CMP:
-        case OP_ADD:
-        case OP_SUB:
-            // EX
-            _alu_op = inst.range(5, 0);
-            _reg_dst = true;
-            // WB
-            _reg_write = true;
-        case OP_LD: // i-type instructions
-            // EX
-            _alu_src = true;
-            // M
-            _mem_read = true;
-            // WB
-            _reg_write = true;
-            _mem_to_reg = true;
-        case OP_ST:
-            // EX
-            _alu_src = true;
-            // M
-            _mem_write = true;
-        case OP_J: // j-type instructions
-        case OP_JN:
-        case OP_JZ:
+            case OP_AND: // r-type instructions
+            case OP_OR:
+            case OP_XOR:
+            case OP_NOT:
+            case OP_CMP:
+            case OP_ADD:
+            case OP_SUB:
+                // EX
+                _alu_op = inst.range(5, 0);
+                _reg_dst = true;
+                // WB
+                _reg_write = true;
+                break;
+            case OP_LD: // i-type instructions
+                // EX
+                //_alu_src = true;
+                _alu_src = false; // NOTE: changed
+                // M
+                _mem_read = true;
+                // WB
+                _reg_write = true;
+                _mem_to_reg = true;
+                break;
+            case OP_ST:
+                // EX
+                _alu_src = true;
+                // M
+                _mem_write = true;
+                break;
+            case OP_J: // j-type instructions
+            case OP_JN:
+            case OP_JZ:
             // // EX
             // alu_op.write();
             // alu_src.write();
@@ -71,19 +75,20 @@ SC_MODULE(control) {
             // // WB
             // reg_write.write();
             // mem_to_reg.write();
-        default: // write values (if instruction is invalid it will write false)
-            // EX
-            alu_op.write(_alu_op);
-            alu_src.write(_alu_src);
-            reg_dst.write(_reg_dst);
-            // M
-            mem_write.write(_mem_write);
-            mem_read.write(_mem_read);
-            // WB
-            reg_write.write(_reg_write);
-            mem_to_reg.write(_mem_to_reg);
-            break;
+            default: 
+                break;
         }
+        // write values (if instruction is invalid it will write false)
+        // EX
+        alu_op.write(_alu_op);
+        alu_src.write(_alu_src);
+        reg_dst.write(_reg_dst);
+        // M
+        mem_write.write(_mem_write);
+        mem_read.write(_mem_read);
+        // WB
+        reg_write.write(_reg_write);
+        mem_to_reg.write(_mem_to_reg);
     }
 
     SC_CTOR(control) {

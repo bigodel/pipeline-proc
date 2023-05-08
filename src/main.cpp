@@ -19,6 +19,7 @@ using namespace std;
 #include "modules/instruction_memory.hpp"
 #include "modules/mem_wb_reg.hpp"
 #include "modules/mux.hpp"
+#include "modules/reg_addr_mux.hpp"
 #include "modules/program_counter.hpp"
 #include "modules/register_file.hpp"
 #include "modules/shift_left_2.hpp"
@@ -28,7 +29,7 @@ SC_MODULE(testbench) {
     sc_in_clk clock;
 
     void test() {
-        for (size_t i = 0; i < 10; i++) {
+        for (size_t i = 0; i < 100; i++) {
             wait();
         }
 
@@ -54,13 +55,14 @@ int sc_main(int argc, char *argv[]) {
     // instruction memory
     sc_signal<WORD> im_inst;
     // IF stage adder
-    sc_signal<WORD> if_adder_4{"constant_4", WORD(4)};
+    sc_signal<WORD> if_adder_1{"constant_1", WORD(1)};
     sc_signal<WORD> if_adder_s;
     // IF stage ----------------------------------------------------------------
 
     // IF/ID register
     sc_signal<WORD> if_id_inst_out;
     sc_signal<WORD> if_id_address_out;
+    sc_signal<WORD> if_id_adder_s_out;
 
     // ID stage ----------------------------------------------------------------
     // register file
@@ -87,8 +89,8 @@ int sc_main(int argc, char *argv[]) {
     sc_signal<WORD> id_ex_data1_out;
     sc_signal<WORD> id_ex_data2_out;
     sc_signal<WORD> id_ex_inst_15_0_out;
-    sc_signal<WORD> id_ex_inst_20_16_out;
-    sc_signal<WORD> id_ex_inst_15_11_out;
+    sc_signal<REG_ADDR> id_ex_inst_20_16_out;
+    sc_signal<REG_ADDR> id_ex_inst_15_11_out;
     // control signals
     // EX
     sc_signal<ALU_OP> id_ex_alu_op_out;
@@ -111,7 +113,7 @@ int sc_main(int argc, char *argv[]) {
     // alu mux
     sc_signal<WORD> ex_alu_mux_out;
     // sw mux reg (used for choosing the register to write on ST instruction)
-    sc_signal<WORD> ex_st_mux_out;
+    sc_signal<REG_ADDR> ex_st_mux_out;
     // shift left 2
     sc_signal<WORD> sl2_out;
     // EX stage ----------------------------------------------------------------
@@ -120,7 +122,7 @@ int sc_main(int argc, char *argv[]) {
     sc_signal<WORD> ex_mem_alu_adder_s_out;
     sc_signal<WORD> ex_mem_adder_out;
     sc_signal<WORD> ex_mem_alu_result_out;
-    sc_signal<WORD> ex_mem_st_mux_out;
+    sc_signal<REG_ADDR> ex_mem_st_mux_out;
     sc_signal<WORD> ex_mem_data2_out;
     // control signals
     // M
@@ -141,7 +143,7 @@ int sc_main(int argc, char *argv[]) {
     // MEM/WB register
     sc_signal<WORD> mem_wb_mem_data_out;
     sc_signal<WORD> mem_wb_alu_result_out;
-    sc_signal<WORD> mem_wb_st_mux_out;
+    sc_signal<REG_ADDR> mem_wb_st_mux_out;
     // control signals
     sc_signal<bool> mem_wb_mem_to_reg_out;
     sc_signal<bool> mem_wb_reg_write_out;
@@ -163,7 +165,7 @@ int sc_main(int argc, char *argv[]) {
 
     adder if_adder("if_adder");
     if_adder.a(pc_address); // input
-    if_adder.b(if_adder_4); // input
+    if_adder.b(if_adder_1); // input
     if_adder.s(if_adder_s); // output
 
     mux if_mux("if_mux");
@@ -175,7 +177,9 @@ int sc_main(int argc, char *argv[]) {
     if_id_reg if_id_reg("if_id_reg");
     if_id_reg.clock(clock);             // input
     if_id_reg.inst_in(im_inst);         // input
+    if_id_reg.if_adder_s_in(if_adder_s); // input 
     if_id_reg.inst_out(if_id_inst_out); // output
+    if_id_reg.if_adder_s_out(if_id_adder_s_out); // output
 
     control control("control_unit");
     control.instruction(if_id_inst_out);
@@ -193,7 +197,7 @@ int sc_main(int argc, char *argv[]) {
     register_file register_file("register_file");
     register_file.reg1(if_id_inst_out);            // input
     register_file.reg2(if_id_inst_out);            // input
-    register_file.write_reg(if_id_inst_out);       // input
+    register_file.write_reg(mem_wb_st_mux_out);    // input
     register_file.write_data(wb_mux_out);          // input
     register_file.reg_write(mem_wb_reg_write_out); // input
     register_file.data1(rf_data1);                 // output
@@ -268,7 +272,7 @@ int sc_main(int argc, char *argv[]) {
     alu.zero(alu_zero);           // output
 
     // sw mux reg (used for choosing the register to write on ST instruction)
-    mux ex_st_mux("ex_st_mux");
+    reg_addr_mux ex_st_mux("ex_st_mux");
     ex_st_mux.a(id_ex_inst_20_16_out); // input
     ex_st_mux.b(id_ex_inst_15_11_out); // input
     ex_st_mux.sel(id_ex_reg_dst_out);  // input
@@ -485,6 +489,7 @@ int sc_main(int argc, char *argv[]) {
             instruction = (instruction, sc_bv<26>(addr));
         }
 
+        std::cout << instruction << std::endl;
         instruction_memory.memory[i++] = instruction;
     }
     inst_file.close();
@@ -509,6 +514,8 @@ int sc_main(int argc, char *argv[]) {
 
     sc_trace(fp, if_id_reg.inst_in, "if_id_reg|0-1-inst_in");
     sc_trace(fp, if_id_reg.inst_out, "if_id_reg|0-2-inst_out");
+    sc_trace(fp, if_id_reg.if_adder_s_in, "if_id_reg|1-3-if_adder_s_in"); 
+    sc_trace(fp, if_id_reg.if_adder_s_out, "if_id_reg|1-4-if_adder_s_out");
 
     sc_trace(fp, register_file.reg1, "register_file|0-1-reg1");
     sc_trace(fp, register_file.reg2, "register_file|0-2-reg2");
@@ -517,6 +524,9 @@ int sc_main(int argc, char *argv[]) {
     sc_trace(fp, register_file.reg_write, "register_file|0-5-reg_write");
     sc_trace(fp, register_file.data1, "register_file|0-6-data1");
     sc_trace(fp, register_file.data2, "register_file|0-7-data2");
+    for (int i = 0; i < 9; i++) {
+        sc_trace(fp, register_file.registers[i], "register_file|0-7-registers-" + std::to_string(i));
+    }
 
     sc_trace(fp, sign_extender.input, "sign_extender|0-1-input");
     sc_trace(fp, sign_extender.output, "sign_extender|0-2-output");
@@ -525,7 +535,7 @@ int sc_main(int argc, char *argv[]) {
     sc_trace(fp, if_adder.b, "if_adder|0-2-b");
     sc_trace(fp, if_adder.s, "if_adder|0-3-s");
 
-    sc_trace(fp, id_ex_reg.data1_in, "id_ex_reg|1-1-data1_in");
+    sc_trace(fp, id_ex_reg.data1_in,  "id_ex_reg|1-1-data1_in");
     sc_trace(fp, id_ex_reg.data2_in, "id_ex_reg|1-2-data2_in");
     sc_trace(fp, id_ex_reg.data1_out, "id_ex_reg|1-3-data1_out");
     sc_trace(fp, id_ex_reg.data2_out, "id_ex_reg|1-4-data2_out");
@@ -536,7 +546,97 @@ int sc_main(int argc, char *argv[]) {
     sc_trace(fp, id_ex_reg.inst_20_16_out, "id_ex_reg|1-9-inst_20_16_out");
     sc_trace(fp, id_ex_reg.inst_15_11_out, "id_ex_reg|1-10-inst_15_11_out");
     sc_trace(fp, id_ex_reg.adder_in, "id_ex_reg|1-11-adder_in");
-    sc_trace(fp, id_ex_reg.adder_out, "id_ex_reg|1-11-adder_out");
+    sc_trace(fp, id_ex_reg.adder_out, "id_ex_reg|1-12-adder_out");
+
+    sc_trace(fp, id_ex_reg.alu_op_in,       "id_ex_reg|ctrl|1-13-alu_op_in");
+    sc_trace(fp, id_ex_reg.alu_op_out,      "id_ex_reg|ctrl|1-14alu_op_out");
+    sc_trace(fp, id_ex_reg.alu_src_in,      "id_ex_reg|ctrl|1-15-alu_src_in");
+    sc_trace(fp, id_ex_reg.alu_src_out,     "id_ex_reg|ctrl|1-16-alu_src_out");
+    sc_trace(fp, id_ex_reg.reg_dst_in,      "id_ex_reg|ctrl|1-17-reg_dst_in");
+    sc_trace(fp, id_ex_reg.reg_dst_out,     "id_ex_reg|ctrl|1-18-reg_dst_out");
+    sc_trace(fp, id_ex_reg.branch_in,       "id_ex_reg|ctrl|1-19-branch_in");
+    sc_trace(fp, id_ex_reg.branch_out,      "id_ex_reg|ctrl|1-20-branch_out");
+    sc_trace(fp, id_ex_reg.mem_write_in,    "id_ex_reg|ctrl|1-21-mem_write_in");
+    sc_trace(fp, id_ex_reg.mem_write_out,   "id_ex_reg|ctrl|1-22-mem_write_out");
+    sc_trace(fp, id_ex_reg.mem_read_in,     "id_ex_reg|ctrl|1-23-mem_read_in");
+    sc_trace(fp, id_ex_reg.mem_read_out,    "id_ex_reg|ctrl|1-24-mem_read_out");
+    sc_trace(fp, id_ex_reg.mem_to_reg_in,   "id_ex_reg|ctrl|1-25-mem_to_reg_in");
+    sc_trace(fp, id_ex_reg.mem_to_reg_out,  "id_ex_reg|ctrl|1-26-mem_to_reg_out");
+    sc_trace(fp, id_ex_reg.reg_write_in,    "id_ex_reg|ctrl|1-27-reg_write_in");
+    sc_trace(fp, id_ex_reg.reg_write_out,   "id_ex_reg|ctrl|1-28-reg_write_out");
+
+    sc_trace(fp, data_memory.address, "data_memory|1-2-address");
+    sc_trace(fp, data_memory.write_data, "data_memory|1-2-write_data");
+    sc_trace(fp, data_memory.data, "data_memory|1-2-data");
+    sc_trace(fp, data_memory.mem_read, "data_memory|1-2-mem_read");
+    sc_trace(fp, data_memory.mem_write, "data_memory|1-2-mem_write");
+
+    sc_trace(fp, wb_mux.a, "wb_mux|1-2-a");
+    sc_trace(fp, wb_mux.b, "wb_mux|1-2-b");
+    sc_trace(fp, wb_mux.sel, "wb_mux|1-2-sel");
+    sc_trace(fp, wb_mux.out, "wb_mux|1-2-out");
+
+    sc_trace(fp, if_mux.a, "if_mux|1-2-a");             // input
+    sc_trace(fp, if_mux.b, "if_mux|1-2-b"); // input
+    sc_trace(fp, if_mux.sel, "if_mux|1-2-sel");               // input
+    sc_trace(fp, if_mux.out, "if_mux|1-2-out");  // output
+
+    sc_trace(fp, ex_alu_mux.a,      "ex_alu_mux|1-0-a");     
+    sc_trace(fp, ex_alu_mux.b,      "ex_alu_mux|1-1-b"); 
+    sc_trace(fp, ex_alu_mux.sel,    "ex_alu_mux|1-2-sel"); 
+    sc_trace(fp, ex_alu_mux.out,    "ex_alu_mux|1-2-out");    
+
+    sc_trace(fp, alu.a,         "alu|1-0-a");       
+    sc_trace(fp, alu.b,         "alu|1-1-b");        
+    sc_trace(fp, alu.alu_op,    "alu|1-2-alu_op"); 
+    sc_trace(fp, alu.result,    "alu|1-3-result");       
+    sc_trace(fp, alu.zero,      "alu|1-4-zero");           
+
+    sc_trace(fp, control.instruction,   "control|1-0-instruction");
+    sc_trace(fp, control.alu_op,        "control|1-1-alu_op");
+    sc_trace(fp, control.alu_src,       "control|1-2-alu_src");
+    sc_trace(fp, control.reg_dst,       "control|1-3-reg_dst");
+    sc_trace(fp, control.mem_write,     "control|1-4-mem_write");
+    sc_trace(fp, control.mem_read,      "control|1-5-mem_read");
+    sc_trace(fp, control.reg_write,     "control|1-6-reg_write");
+    sc_trace(fp, control.mem_to_reg,    "control|1-7-mem_to_reg");
+
+    sc_trace(fp, ex_adder.a, "ex_adder|1-0-a");
+    sc_trace(fp, ex_adder.b, "ex_adder|1-1-b");
+    sc_trace(fp, ex_adder.s, "ex_adder|1-2-s");
+
+    sc_trace(fp, ex_mem_reg.adder_in,       "ex_mem_reg|1-0-adder_in");
+    sc_trace(fp, ex_mem_reg.adder_out,      "ex_mem_reg|1-1-adder_out");
+    sc_trace(fp, ex_mem_reg.alu_result_in,  "ex_mem_reg|1-2-alu_result_in");
+    sc_trace(fp, ex_mem_reg.alu_result_out, "ex_mem_reg|1-3-alu_result_out");
+    sc_trace(fp, ex_mem_reg.data2_in,       "ex_mem_reg|1-4-data2_in");
+    sc_trace(fp, ex_mem_reg.data2_out,      "ex_mem_reg|1-5-data2_out");
+    sc_trace(fp, ex_mem_reg.st_mux_in,      "ex_mem_reg|1-6-st_mux_in");
+    sc_trace(fp, ex_mem_reg.st_mux_out,     "ex_mem_reg|1-7-st_mux_out");
+
+    sc_trace(fp, ex_mem_reg.alu_zero_in,    "ex_mem_reg|ctrl|1-0-alu_zero_in");
+    sc_trace(fp, ex_mem_reg.alu_zero_out,   "ex_mem_reg|ctrl|1-1-alu_zero_out");
+    sc_trace(fp, ex_mem_reg.branch_in,      "ex_mem_reg|ctrl|1-2-branch_in");
+    sc_trace(fp, ex_mem_reg.branch_out,     "ex_mem_reg|ctrl|1-3-branch_out");
+    sc_trace(fp, ex_mem_reg.mem_write_in,   "ex_mem_reg|ctrl|1-4-mem_write_in");
+    sc_trace(fp, ex_mem_reg.mem_write_out,  "ex_mem_reg|ctrl|1-5-mem_write_out");
+    sc_trace(fp, ex_mem_reg.mem_read_in,    "ex_mem_reg|ctrl|1-6-mem_read_in");
+    sc_trace(fp, ex_mem_reg.mem_read_out,   "ex_mem_reg|ctrl|1-7-mem_read_out");
+    sc_trace(fp, ex_mem_reg.mem_to_reg_in,  "ex_mem_reg|ctrl|1-8-mem_to_reg_in");
+    sc_trace(fp, ex_mem_reg.mem_to_reg_out, "ex_mem_reg|ctrl|1-9-mem_to_reg_out");
+    sc_trace(fp, ex_mem_reg.reg_write_in,   "ex_mem_reg|ctrl|1-10-reg_write_in");
+    sc_trace(fp, ex_mem_reg.reg_write_out,  "ex_mem_reg|ctrl|1-11-reg_write_out");
+
+    sc_trace(fp, mem_wb_reg.mem_data_in,    "mem_wb_reg|1-0-mem_data_in");
+    sc_trace(fp, mem_wb_reg.mem_data_out,   "mem_wb_reg|1-1-mem_data_out");
+    sc_trace(fp, mem_wb_reg.alu_result_in,  "mem_wb_reg|1-2-alu_result_in");
+    sc_trace(fp, mem_wb_reg.alu_result_out, "mem_wb_reg|1-3-alu_result_out");
+    sc_trace(fp, mem_wb_reg.st_mux_in,      "mem_wb_reg|1-4-st_mux_in");
+    sc_trace(fp, mem_wb_reg.st_mux_out,     "mem_wb_reg|1-5-st_mux_out");
+    sc_trace(fp, mem_wb_reg.mem_to_reg_in,  "mem_wb_reg|ctrl|1-0-mem_to_reg_in");
+    sc_trace(fp, mem_wb_reg.mem_to_reg_out, "mem_wb_reg|ctrl|1-1-mem_to_reg_out");
+    sc_trace(fp, mem_wb_reg.reg_write_in,   "mem_wb_reg|ctrl|1-2-reg_write_in");
+    sc_trace(fp, mem_wb_reg.reg_write_out,  "mem_wb_reg|ctrl|1-3-reg_write_out");
 
     sc_start();
 

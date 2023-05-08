@@ -24,7 +24,8 @@ SC_MODULE(id_ex_reg) {
 
     // output
     sc_out<WORD> data1_out, data2_out;
-    sc_out<WORD> inst_15_0_out, inst_20_16_out, inst_15_11_out;
+    sc_out<WORD> inst_15_0_out;
+    sc_out<REG_ADDR> inst_20_16_out, inst_15_11_out;
     sc_out<WORD> adder_out;
 
     WORD memory[14] = {0};
@@ -34,8 +35,8 @@ SC_MODULE(id_ex_reg) {
         memory[0] = data1_in.read();
         memory[1] = data2_in.read();
         memory[2] = inst_15_0_in.read();
-        memory[3] = inst_20_16_in.read();
-        memory[4] = inst_15_11_in.read();
+        memory[3] = inst_20_16_in.read().range(20, 16);
+        memory[4] = inst_15_11_in.read().range(15, 11);
         memory[5] = adder_in.read();
 
         // control signals

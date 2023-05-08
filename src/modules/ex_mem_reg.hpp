@@ -5,7 +5,8 @@ SC_MODULE(ex_mem_reg) {
     sc_in_clk clock;
 
     // inputs
-    sc_in<WORD> adder_in, alu_result_in, st_mux_in, data2_in;
+    sc_in<WORD> adder_in, alu_result_in, data2_in;
+    sc_in<REG_ADDR> st_mux_in;
 
     // control signals
     // M
@@ -16,7 +17,8 @@ SC_MODULE(ex_mem_reg) {
     sc_out<bool> mem_to_reg_out, reg_write_out;
 
     // output
-    sc_out<WORD> adder_out, alu_result_out, st_mux_out, data2_out;
+    sc_out<WORD> adder_out, alu_result_out, data2_out;
+    sc_out<REG_ADDR> st_mux_out;
 
     WORD memory[10] = {0};
 

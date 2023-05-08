@@ -13,7 +13,7 @@ SC_MODULE(data_memory) {
     sc_out<WORD> data;
 
     // actual memory
-    WORD memory[1024] = {0};
+    WORD memory[1024] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 
     void mem_access() {
         // TODO: check if we need to divide by 4

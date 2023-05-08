@@ -21,31 +21,35 @@ SC_MODULE(alu) {
             res = add;
             is_zero = res == 0;
         }
-        if (alu_op.read() == SUB) {
+        else if (alu_op.read() == SUB) {
+            //std::cout << a.read().to_int() << std::endl;
+            //std::cout << b.read().to_int() << std::endl;
+            //std::cout << a.read().to_int() - b.read().to_int() << std::endl;
             WORD sub(a.read().to_int() - b.read().to_int());
             res = sub;
             is_zero = res == 0;
         }
-        if (alu_op.read() == AND) {
+        else if (alu_op.read() == AND) {
             res = a.read() & b.read();
             is_zero = res == 0;
         }
-        if (alu_op.read() == OR) {
+        else if (alu_op.read() == OR) {
             res = a.read() | b.read();
             is_zero = res == 0;
         }
-        if (alu_op.read() == XOR) {
+        else if (alu_op.read() == XOR) {
             res = a.read() ^ b.read();
             is_zero = res == 0;
         }
-        if (alu_op.read() == NOT) {
+        else if (alu_op.read() == NOT) {
             res = ~a.read();
             is_zero = res == 0;
         }
-        if (alu_op.read() == CMP) {
+        else if (alu_op.read() == CMP) {
             res = a.read().to_int() < b.read().to_int();
             is_zero = res == 0;
-        } else {
+        } 
+        else {
             res = 0;
             is_zero = true;
         }

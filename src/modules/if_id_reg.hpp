@@ -5,25 +5,23 @@ SC_MODULE(if_id_reg) {
     sc_in_clk clock;
 
     // inputs
-    sc_in<WORD> inst_in;
-    // sc_in<WORD> program_counter;
-
-    // control signals
-    // sc_in<bool> flush;
+    sc_in<WORD> inst_in, if_adder_s_in;
 
     // output
-    sc_out<WORD> inst_out;
+    sc_out<WORD> inst_out, if_adder_s_out;
 
-    WORD memory = 0;
+    WORD memory[2] = {0};
 
     void read() {
         // read
-        memory = inst_in.read();
+        memory[0] = inst_in.read();
+        memory[1] = if_adder_s_in.read();
     }
 
     void write() {
         // write
-        inst_out.write(memory);
+        inst_out.write(memory[0]);
+        if_adder_s_out.write(memory[1]);
     }
 
     SC_CTOR(if_id_reg) {

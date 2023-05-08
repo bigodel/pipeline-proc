@@ -5,8 +5,10 @@ SC_MODULE(mem_wb_reg) {
     sc_in_clk clock;
 
     // inputs
-    sc_in<WORD> mem_data_in, alu_result_in, st_mux_in;
-    sc_out<WORD> mem_data_out, alu_result_out, st_mux_out;
+    sc_in<WORD> mem_data_in, alu_result_in;
+    sc_in<REG_ADDR> st_mux_in;
+    sc_out<WORD> mem_data_out, alu_result_out;
+    sc_out<REG_ADDR> st_mux_out;
 
     // control signals
     sc_in<bool> mem_to_reg_in, reg_write_in;

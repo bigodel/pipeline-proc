@@ -4,7 +4,8 @@
 SC_MODULE(register_file) {
     // sc_in_clk clock;
     // inputs
-    sc_in<WORD> reg1, reg2, write_reg;
+    sc_in<WORD> reg1, reg2;
+    sc_in<REG_ADDR> write_reg;
     sc_in<WORD> write_data;
 
     // control signals
@@ -23,7 +24,7 @@ SC_MODULE(register_file) {
         data2.write(registers[rt]);
 
         if (reg_write.read() == true) {
-            int rd = write_reg.read().range(15, 11).to_int();
+            int rd = write_reg.read().to_int();
             registers[rd] = write_data.read();
         }
     }
