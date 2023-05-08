@@ -1,5 +1,6 @@
 #include <bitset>
 #include <fstream>
+#include <map>
 #include <string>
 #include <systemc.h>
 
@@ -325,7 +326,7 @@ int sc_main(int argc, char *argv[]) {
     wb_mux.out(wb_mux_out);
 
     // # READ DATA FILE AND LOAD INTO DATA MEMORY #
-    fstream instFs;
+    fstream inst_file;
     //
     //    instFs.open("data.in");
     //
@@ -343,54 +344,130 @@ int sc_main(int argc, char *argv[]) {
     //    instFs.close();
     //
     //  # READ INSTRUCTION FILE AND LOAD INTO INSTRUCTION MEMORY #
-    instFs.open("instruction.in");
+    inst_file.open("instruction.in");
 
     // Checks if the file was found
-    if (!instFs) {
-        cerr << "Error: file could not be opened" << endl;
+    if (!inst_file) {
+        cerr << "Error: file could not be opened." << endl;
         return 1;
     }
 
+    map<string, int> opcode_from_string{
+        // r-type
+        {"and", 0b000000},
+        {"or", 0b000001},
+        {"xor", 0b000010},
+        {"not", 0b000011},
+        {"cmp", 0b000100},
+        {"add", 0b000101},
+        {"sub", 0b000110},
+        // i-type
+        {"ld", 0b000111},
+        {"st", 0b001000},
+        // j-type
+        {"j", 0b001001},
+        {"jn", 0b001010},
+        {"jz", 0b001011},
+    };
+
     // Loads all instructions into the memory
     string opcode_name = "";
-    int reg1, reg2, dest;
-    WORD inst;
-
+    // int reg1, reg2, dest;
     int i = 0;
-    // Checks if there is a instruction opCode in the line
-    while (instFs >> opcode_name >> reg1 >> reg2 >> dest) {
-        string instruction = "";
+    while (inst_file >> opcode_name) {
+        WORD instruction;
 
-        // convert opcode string to int and save
-        if (opcode_name == "AND")
-            instruction += OP_AND;
-        else if (opcode_name == "OR")
-            instruction += OP_OR;
-        else if (opcode_name == "XOR")
-            instruction += OP_XOR;
-        else if (opcode_name == "NOT")
-            instruction += OP_NOT;
-        else if (opcode_name == "CMP")
-            instruction += OP_CMP;
-        else if (opcode_name == "ADD")
-            instruction += OP_ADD;
-        else if (opcode_name == "SUB")
-            instruction += OP_SUB;
-
-        instruction += bitset<5>(reg1).to_string();
-        instruction += bitset<5>(reg2).to_string();
-        instruction += bitset<5>(dest).to_string();
-        instruction += bitset<11>(0).to_string();
-
-        // assign the binary string to the bit-vector
-        for (int j = 0; j < (int)instruction.size(); ++j) {
-            inst[31 - j] = instruction[j];
+        bool rtype = false;
+        bool itype = false;
+        bool jtype = false;
+        ALU_OP alu_op(-1);
+        switch (opcode_from_string[opcode_name]) {
+        case OP_AND: // r-type
+            instruction = OP_AND;
+            alu_op = AND;
+            rtype = true;
+            break;
+        case OP_OR:
+            instruction = OP_OR;
+            alu_op = OR;
+            rtype = true;
+            break;
+        case OP_XOR:
+            instruction = OP_XOR;
+            alu_op = XOR;
+            rtype = true;
+            break;
+        case OP_NOT:
+            instruction = OP_NOT;
+            alu_op = NOT;
+            rtype = true;
+            break;
+        case OP_CMP:
+            instruction = OP_CMP;
+            alu_op = CMP;
+            rtype = true;
+            break;
+        case OP_ADD:
+            instruction = OP_ADD;
+            alu_op = ADD;
+            rtype = true;
+            break;
+        case OP_SUB:
+            instruction = OP_SUB;
+            alu_op = SUB;
+            rtype = true;
+            break;
+        case OP_LD: // i-type
+            instruction = OP_LD;
+            itype = true;
+            break;
+        case OP_ST:
+            instruction = OP_ST;
+            itype = true;
+            break;
+        case OP_J: // j-type
+            instruction = OP_J;
+            jtype = true;
+        case OP_JN:
+            instruction = OP_JN;
+            jtype = true;
+        case OP_JZ:
+            instruction = OP_JZ;
+            jtype = true;
         }
 
-        instruction_memory.memory[i] = inst;
-        i++;
+        if (rtype) { // r-type
+            int rs;
+            int rt;
+            int rd;
+            REG_ADDR shamt = 0;
+            // convert alu_op to 6 bit vector, since that's the size of funct
+            sc_bv<6> funct = alu_op;
+
+            inst_file >> rs >> rt >> rd;
+
+            instruction = (instruction, REG_ADDR(rs), REG_ADDR(rt),
+                           REG_ADDR(rd), shamt, funct);
+        } else if (itype) { // i-type
+            int rs;
+            int rt;
+            int imm;
+
+            inst_file >> rs >> rt >> imm;
+
+            instruction =
+                (instruction, REG_ADDR(rs), REG_ADDR(rt), IMM(imm));
+        } else if (jtype) {
+            int addr;
+
+            inst_file >> addr;
+
+            instruction = (instruction, sc_bv<26>(addr));
+        }
+
+        instruction_memory.memory[i++] = instruction;
     }
-    instFs.close();
+    inst_file.close();
 
     // ### TESTBENCH ###
     testbench testbench("testbench");
