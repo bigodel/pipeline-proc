@@ -62,9 +62,9 @@ SC_MODULE(control) {
             // M
             _mem_write = true;
             break;
-        case 9: // j-type instructions
-        case 10:
-        case 11:
+        case OP_J: // j-type instructions
+        case OP_JN:
+        case OP_JZ:
             // // EX
             // alu_op.write();
             // alu_src.write();
