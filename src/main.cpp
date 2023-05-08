@@ -24,15 +24,15 @@ SC_MODULE(testbench) {
 // INCLUDE MODULES
 #include "definitions.hpp"
 #include "modules/adder.hpp"
+#include "modules/alu.hpp"
 #include "modules/id_ex_reg.hpp"
 #include "modules/if_id_reg.hpp"
 #include "modules/instruction_memory.hpp"
 #include "modules/mux.hpp"
- #include "modules/alu.hpp"
 #include "modules/program_counter.hpp"
 #include "modules/register_file.hpp"
-#include "modules/sign_extender.hpp"
 #include "modules/shift_left_2.hpp"
+#include "modules/sign_extender.hpp"
 // #include "modules/data_memory.hpp"
 
 int sc_main(int argc, char *argv[]) {
@@ -66,6 +66,8 @@ int sc_main(int argc, char *argv[]) {
     // ID/EX register
     sc_signal<WORD> id_ex_data1_out, id_ex_data2_out, id_ex_inst_15_0_out,
         id_ex_inst_20_16_out, id_ex_inst_15_11_out, id_ex_adder_out;
+    sc_signal<ALU_OP> id_ex_alu_op_out;
+    sc_signal<bool> id_ex_alu_src_out, id_ex_reg_dst_out;
 
     // EX stage ----------------------------------------------------------------
     // adder
@@ -81,6 +83,14 @@ int sc_main(int argc, char *argv[]) {
     sc_signal<WORD> sl2_out;
     // EX stage ----------------------------------------------------------------
 
+    // EX/MEM register
+    sc_signal<WORD> ex_mem_alu_adder_s_out;
+
+    // MEM stage ---------------------------------------------------------------
+    // control signals
+    sc_signal<bool> ctrl_pc_src;
+    // MEM stage ---------------------------------------------------------------
+
     // WB stage ----------------------------------------------------------------
     sc_signal<WORD> mem_wb_write_reg_out;
     sc_signal<bool> mem_wb_reg_write_out;
@@ -88,9 +98,9 @@ int sc_main(int argc, char *argv[]) {
 
     // ### COMPONENTS ###
     program_counter program_counter("program_counter");
-    program_counter.clock(clock);                     // input
+    program_counter.clock(clock);                      // input
     program_counter.jump_address(if_mux_jump_address); // input
-    program_counter.address(pc_address);              // output
+    program_counter.address(pc_address);               // output
 
     instruction_memory instruction_memory("instruction_memory");
     instruction_memory.address(pc_address); // input
@@ -101,17 +111,15 @@ int sc_main(int argc, char *argv[]) {
     if_adder.b(if_adder_4); // input
     if_adder.s(if_adder_s); // output
 
-    // mux if_mux("if_mux");
-    // if_mux.a(if_adder_s);
-    // // TODO: ex_mem_alu_adder_s
-    // // if_mux.b();
-    // // TODO: PCSrc control signal
-    // // if_mux.sel();
-    // if_mux.out(if_mux_jump_address); // output
+    mux if_mux("if_mux");
+    if_mux.a(if_adder_s);
+    if_mux.b(ex_mem_alu_adder_s_out);
+    if_mux.sel(ctrl_pc_src);
+    if_mux.out(if_mux_jump_address); // output
 
     if_id_reg if_id_reg("if_id_reg");
-    if_id_reg.clock(clock);            // input
-    if_id_reg.inst_in(im_inst);        // input
+    if_id_reg.clock(clock);             // input
+    if_id_reg.inst_in(im_inst);         // input
     if_id_reg.inst_out(if_id_inst_out); // output
 
     register_file register_file("register_file");
@@ -120,12 +128,12 @@ int sc_main(int argc, char *argv[]) {
     register_file.write_reg(if_id_inst_out);        // input
     register_file.write_data(mem_wb_write_reg_out); // input
     register_file.reg_write(mem_wb_reg_write_out);  // input
-    register_file.data1(rf_data1);                 // output
-    register_file.data2(rf_data2);                 // output
+    register_file.data1(rf_data1);                  // output
+    register_file.data2(rf_data2);                  // output
 
     sign_extender sign_extender("sign_extender");
     sign_extender.input(if_id_inst_out); // input
-    sign_extender.output(se_output);    // output
+    sign_extender.output(se_output);     // output
 
     id_ex_reg id_ex_reg("id_ex_reg");
     id_ex_reg.clock(clock); // input
@@ -151,21 +159,25 @@ int sc_main(int argc, char *argv[]) {
     ex_adder.b(sl2_out);
     ex_adder.s(ex_adder_s);
 
-    // alu mux
-    // mux ex_alu_mux("ex_alu_mux");
-    // ex_alu_mux.a(id_ex_data2_out);
-    // ex_alu_mux.b(id_ex_inst_15_0_out);
-    // TODO: ALUSrc control signal
-    // // ex_alu_mux.sel();
-    // ex_alu_mux.out(ex_alu_mux_out);
+    mux ex_alu_mux("ex_alu_mux");
+    ex_alu_mux.a(id_ex_data2_out);
+    ex_alu_mux.b(id_ex_inst_15_0_out);
+    ex_alu_mux.sel(id_ex_alu_src_out);
+    ex_alu_mux.out(ex_alu_mux_out);
+
+    alu alu("alu");
+    alu.a(id_ex_data1_out);
+    alu.b(ex_alu_mux_out);
+    alu.alu_op(id_ex_alu_op_out);
+    alu.result(alu_result);
+    alu.zero(alu_zero);
 
     // sw mux reg (used for choosing the register to write on ST instruction)
-    // mux ex_st_mux("ex_st_mux");
-    // ex_st_mux.a(id_ex_inst_20_16_out);
-    // ex_st_mux.b(id_ex_inst_15_11_out);
-    // // TODO: RegDst control signal
-    // // ex_st_mux.sel();
-    // ex_st_mux.out(ex_st_mux_out);
+    mux ex_st_mux("ex_st_mux");
+    ex_st_mux.a(id_ex_inst_20_16_out);
+    ex_st_mux.b(id_ex_inst_15_11_out);
+    ex_st_mux.sel(id_ex_reg_dst_out);
+    ex_st_mux.out(ex_st_mux_out);
 
     // # READ DATA FILE AND LOAD INTO DATA MEMORY #
     fstream instFs;
