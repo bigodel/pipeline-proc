@@ -378,20 +378,20 @@ int sc_main(int argc, char *argv[]) {
 
     map<string, int> opcode_from_string{
         // r-type
-        {"and", 0b000000},
-        {"or", 0b000001},
-        {"xor", 0b000010},
-        {"not", 0b000011},
-        {"cmp", 0b000100},
-        {"add", 0b000101},
-        {"sub", 0b000110},
+        {"and", OP_AND},
+        {"or", OP_OR},
+        {"xor", OP_XOR},
+        {"not", OP_NOT},
+        {"cmp", OP_CMP},
+        {"add", OP_ADD},
+        {"sub", OP_SUB},
         // i-type
-        {"ld", 0b000111},
-        {"st", 0b001000},
+        {"ld", OP_LD},
+        {"st", OP_ST},
         // j-type
-        {"j", 0b001001},
-        {"jn", 0b001010},
-        {"jz", 0b001011},
+        {"j", OP_J},
+        {"jn", OP_JN},
+        {"jz", OP_JZ},
     };
 
     // Loads all instructions into the memory
