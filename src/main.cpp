@@ -25,15 +25,15 @@ SC_MODULE(testbench) {
 #include "definitions.hpp"
 #include "modules/adder.hpp"
 #include "modules/alu.hpp"
-#include "modules/if_id_reg.hpp"
-#include "modules/id_ex_reg.hpp"
+#include "modules/data_memory.hpp"
 #include "modules/ex_mem_reg.hpp"
-#include "modules/mem_wb_reg.hpp"
+#include "modules/id_ex_reg.hpp"
+#include "modules/if_id_reg.hpp"
 #include "modules/instruction_memory.hpp"
+#include "modules/mem_wb_reg.hpp"
 #include "modules/mux.hpp"
 #include "modules/program_counter.hpp"
 #include "modules/register_file.hpp"
-#include "modules/data_memory.hpp"
 #include "modules/shift_left_2.hpp"
 #include "modules/sign_extender.hpp"
 // #include "modules/data_memory.hpp"
@@ -68,7 +68,7 @@ int sc_main(int argc, char *argv[]) {
 
     // ID/EX register
     sc_signal<WORD> id_ex_data1_out, id_ex_data2_out, id_ex_inst_15_0_out,
-    id_ex_inst_20_16_out, id_ex_inst_15_11_out, id_ex_adder_out;
+        id_ex_inst_20_16_out, id_ex_inst_15_11_out, id_ex_adder_out;
     sc_signal<ALU_OP> id_ex_alu_op_out;
     sc_signal<bool> id_ex_alu_src_out, id_ex_reg_dst_out;
 
@@ -88,26 +88,27 @@ int sc_main(int argc, char *argv[]) {
 
     // EX/MEM register
     sc_signal<WORD> ex_mem_alu_adder_s_out;
-    sc_signal<WORD> ex_mem_adder_out, ex_mem_alu_result_out, 
-    ex_mem_st_mux_out, ex_mem_data2_out;
+    sc_signal<WORD> ex_mem_adder_out, ex_mem_alu_result_out, ex_mem_st_mux_out,
+        ex_mem_data2_out;
     sc_signal<bool> ex_mem_alu_zero_out;
 
     // MEM stage ---------------------------------------------------------------
     // control signals
-
     sc_signal<bool> ctrl_pc_src;
     sc_signal<WORD> mem_data;
     sc_signal<bool> mem_mem_read, mem_mem_write;
-
-    // MEM/WB register
-    sc_signal<WORD> mem_wb_mem_data_out, mem_wb_alu_result_out, 
-    mem_wb_st_mux_out;
-
     // MEM stage ---------------------------------------------------------------
 
-    // WB stage ----------------------------------------------------------------
-    sc_signal<WORD> mem_wb_write_reg_out;
+    // MEM/WB register
+    sc_signal<WORD> mem_wb_mem_data_out, mem_wb_alu_result_out,
+        mem_wb_st_mux_out;
     sc_signal<bool> mem_wb_reg_write_out;
+
+    // WB stage ----------------------------------------------------------------
+    // wb mux
+    sc_signal<WORD> wb_mux_out;
+    // control signal
+    sc_signal<bool> mem_wb_mem_to_reg_out;
     // WB stage ----------------------------------------------------------------
 
     // ### COMPONENTS ###
@@ -140,7 +141,7 @@ int sc_main(int argc, char *argv[]) {
     register_file.reg1(if_id_inst_out);             // input
     register_file.reg2(if_id_inst_out);             // input
     register_file.write_reg(if_id_inst_out);        // input
-    register_file.write_data(mem_wb_write_reg_out); // input
+    register_file.write_data(wb_mux_out);           // input
     register_file.reg_write(mem_wb_reg_write_out);  // input
     register_file.data1(rf_data1);                  // output
     register_file.data2(rf_data2);                  // output
@@ -227,6 +228,12 @@ int sc_main(int argc, char *argv[]) {
 
     mem_wb_reg.st_mux_in(ex_mem_st_mux_out);
     mem_wb_reg.st_mux_out(mem_wb_st_mux_out);
+
+    mux wb_mux("wb_mux");
+    wb_mux.a(mem_wb_mem_data_out);
+    wb_mux.b(mem_wb_alu_result_out);
+    wb_mux.sel(mem_wb_mem_to_reg_out);
+    wb_mux.out(wb_mux_out);
 
     // # READ DATA FILE AND LOAD INTO DATA MEMORY #
     fstream instFs;
