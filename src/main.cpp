@@ -10,6 +10,7 @@ using namespace std;
 #include "definitions.hpp"
 #include "modules/adder.hpp"
 #include "modules/alu.hpp"
+#include "modules/control.hpp"
 #include "modules/data_memory.hpp"
 #include "modules/ex_mem_reg.hpp"
 #include "modules/id_ex_reg.hpp"
@@ -174,6 +175,20 @@ int sc_main(int argc, char *argv[]) {
     if_id_reg.clock(clock);             // input
     if_id_reg.inst_in(im_inst);         // input
     if_id_reg.inst_out(if_id_inst_out); // output
+
+    control control("control_unit");
+    control.instruction(if_id_inst_out);
+    // EX
+    control.alu_op(alu_op);
+    control.alu_src(alu_src);
+    control.reg_dst(reg_dst);
+    // M
+    control.mem_write(mem_write);
+    control.mem_read(mem_read);
+    control.pc_src(pc_src);
+    // WB
+    control.reg_write(reg_write);
+    control.mem_to_reg(mem_to_reg);
 
     register_file register_file("register_file");
     register_file.reg1(if_id_inst_out);            // input
