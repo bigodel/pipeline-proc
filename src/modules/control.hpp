@@ -26,7 +26,6 @@ SC_MODULE(control) {
         // M
         bool _mem_write = false;
         bool _mem_read = false;
-        // bool _pc_src = false;
         // WB
         bool _reg_write = false;
         bool _mem_to_reg = false;
@@ -46,7 +45,6 @@ SC_MODULE(control) {
             _reg_dst = true;
             // WB
             _reg_write = true;
-            break;
         case OP_LD: // i-type instructions
             // EX
             _alu_src = true;
@@ -55,13 +53,11 @@ SC_MODULE(control) {
             // WB
             _reg_write = true;
             _mem_to_reg = true;
-            break;
         case OP_ST:
             // EX
             _alu_src = true;
             // M
             _mem_write = true;
-            break;
         case OP_J: // j-type instructions
         case OP_JN:
         case OP_JZ:
@@ -75,7 +71,6 @@ SC_MODULE(control) {
             // // WB
             // reg_write.write();
             // mem_to_reg.write();
-            break;
         default: // write values (if instruction is invalid it will write false)
             // EX
             alu_op.write(_alu_op);
