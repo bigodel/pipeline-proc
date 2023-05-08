@@ -7,7 +7,8 @@ SC_MODULE(mux) {
     sc_out<WORD> out;
 
     void select() {
-        if (sel.read()) out.write(a.read());
+        // return A if false, B if true
+        if (!sel.read()) out.write(a.read());
         else out.write(b.read());
     }
 
