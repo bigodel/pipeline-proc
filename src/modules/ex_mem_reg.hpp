@@ -12,8 +12,8 @@ SC_MODULE(ex_mem_reg) {
     sc_in<bool> alu_zero_in, branch_in, mem_write_in, mem_read_in;
     sc_out<bool> alu_zero_out, branch_out, mem_write_out, mem_read_out;
     // WB
-    sc_in<bool> mem_to_reg_in, pc_src_in;
-    sc_out<bool> mem_to_reg_out, pc_src_out;
+    sc_in<bool> mem_to_reg_in, reg_write_in;
+    sc_out<bool> mem_to_reg_out, reg_write_out;
 
     // output
     sc_out<WORD> adder_out, alu_result_out, st_mux_out, data2_out;
@@ -34,7 +34,7 @@ SC_MODULE(ex_mem_reg) {
         memory[6] = mem_write_in.read();
         memory[7] = mem_read_in.read();
         // WB
-        memory[8] = pc_src_in.read();
+        memory[8] = reg_write_in.read();
         memory[9] = mem_to_reg_in.read();
     }
 
@@ -52,7 +52,7 @@ SC_MODULE(ex_mem_reg) {
         mem_write_out.write(memory[6].to_int());
         mem_read_out.write(memory[7].to_int());
         // WB
-        pc_src_out.write(memory[3].to_int());
+        reg_write_out.write(memory[3].to_int());
         mem_to_reg_out.write(memory[4].to_int());
     }
 
