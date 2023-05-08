@@ -28,7 +28,7 @@ SC_MODULE(testbench) {
 #include "modules/if_id_reg.hpp"
 #include "modules/instruction_memory.hpp"
 #include "modules/mux.hpp"
-// #include "modules/alu.hpp"
+ #include "modules/alu.hpp"
 #include "modules/program_counter.hpp"
 #include "modules/register_file.hpp"
 #include "modules/sign_extender.hpp"
