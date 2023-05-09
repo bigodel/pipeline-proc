@@ -8,6 +8,8 @@ SC_MODULE(control) {
     // reg output
     sc_out<bool> reg_write;
 
+    sc_out<bool> branch;
+
     // alu output
     sc_out<ALU_OP> alu_op;
 
@@ -26,6 +28,7 @@ SC_MODULE(control) {
         // M
         bool _mem_write = false;
         bool _mem_read = false;
+        bool _branch = false;
         // WB
         bool _reg_write = false;
         bool _mem_to_reg = false;
@@ -45,6 +48,7 @@ SC_MODULE(control) {
                 _reg_dst = true;
                 // WB
                 _reg_write = true;
+                _mem_to_reg = true;
                 break;
             case OP_LD: // i-type instructions
                 // EX
@@ -65,16 +69,9 @@ SC_MODULE(control) {
             case OP_J: // j-type instructions
             case OP_JN:
             case OP_JZ:
-            // // EX
-            // alu_op.write();
-            // alu_src.write();
-            // reg_dst.write();
-            // // M
-            // mem_write.write();
-            // mem_read.write();
-            // // WB
-            // reg_write.write();
-            // mem_to_reg.write();
+                _alu_op = ADD;
+                _branch = true;
+                break;
             default: 
                 break;
         }
@@ -89,6 +86,8 @@ SC_MODULE(control) {
         // WB
         reg_write.write(_reg_write);
         mem_to_reg.write(_mem_to_reg);
+
+        branch.write(_branch);
     }
 
     SC_CTOR(control) {

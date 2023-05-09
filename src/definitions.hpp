@@ -6,6 +6,7 @@
 #define OP sc_bv<6>
 #define REG_ADDR sc_bv<5>
 #define IMM sc_bv<16>
+//#define ADDR sc_bv<26>
 #define ALU_OP sc_bv<3>
 
 // constants

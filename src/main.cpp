@@ -170,7 +170,8 @@ int sc_main(int argc, char *argv[]) {
 
     mux if_mux("if_mux");
     if_mux.a(if_adder_s);             // input
-    if_mux.b(ex_mem_alu_adder_s_out); // input
+    //if_mux.b(ex_mem_alu_adder_s_out); // input
+    if_mux.b(ex_mem_adder_out); // input
     if_mux.sel(pc_src);               // input
     if_mux.out(if_mux_jump_address);  // output
 
@@ -193,6 +194,7 @@ int sc_main(int argc, char *argv[]) {
     // WB
     control.reg_write(reg_write);
     control.mem_to_reg(mem_to_reg);
+    control.branch(branch);
 
     register_file register_file("register_file");
     register_file.reg1(if_id_inst_out);            // input
@@ -249,13 +251,14 @@ int sc_main(int argc, char *argv[]) {
     id_ex_reg.reg_write_in(reg_write);
     id_ex_reg.reg_write_out(id_ex_reg_write_out);
 
-    shift_left_2 shift_left_2("shift_left_2");
-    shift_left_2.in(id_ex_inst_15_0_out); // input
-    shift_left_2.out(sl2_out);            // output
+    // NOTE: Don't need to multiply the PC address
+    //shift_left_2 shift_left_2("shift_left_2");
+    //shift_left_2.in(id_ex_inst_15_0_out); // input
+    //shift_left_2.out(sl2_out);            // output
 
     adder ex_adder("ex_adder");
     ex_adder.a(id_ex_adder_out); // input
-    ex_adder.b(sl2_out);         // input
+    ex_adder.b(id_ex_inst_15_0_out); // input
     ex_adder.s(ex_adder_s);      // output
 
     mux ex_alu_mux("ex_alu_mux");
@@ -481,12 +484,12 @@ int sc_main(int argc, char *argv[]) {
 
             instruction = (instruction, REG_ADDR(rs), REG_ADDR(rt), IMM(imm));
         } else if (jtype) {
-            // TODO: this is probably wrong
-            int addr;
+            int field[3];
 
-            inst_file >> addr;
+            inst_file >> field[0] >> field[1] >> field[2];
 
-            instruction = (instruction, sc_bv<26>(addr));
+            instruction = (instruction, REG_ADDR(field[0]), 
+                REG_ADDR(field[1]), IMM(field[2]));
         }
 
         std::cout << instruction << std::endl;
@@ -595,14 +598,15 @@ int sc_main(int argc, char *argv[]) {
     sc_trace(fp, alu.result,    "alu|1-3-result");       
     sc_trace(fp, alu.zero,      "alu|1-4-zero");           
 
-    sc_trace(fp, control.instruction,   "control|1-0-instruction");
-    sc_trace(fp, control.alu_op,        "control|1-1-alu_op");
-    sc_trace(fp, control.alu_src,       "control|1-2-alu_src");
-    sc_trace(fp, control.reg_dst,       "control|1-3-reg_dst");
-    sc_trace(fp, control.mem_write,     "control|1-4-mem_write");
-    sc_trace(fp, control.mem_read,      "control|1-5-mem_read");
-    sc_trace(fp, control.reg_write,     "control|1-6-reg_write");
-    sc_trace(fp, control.mem_to_reg,    "control|1-7-mem_to_reg");
+    sc_trace(fp, control.instruction,   "control|0-instruction");
+    sc_trace(fp, control.alu_op,        "control|1-alu_op");
+    sc_trace(fp, control.alu_src,       "control|2-alu_src");
+    sc_trace(fp, control.reg_dst,       "control|3-reg_dst");
+    sc_trace(fp, control.mem_write,     "control|4-mem_write");
+    sc_trace(fp, control.mem_read,      "control|5-mem_read");
+    sc_trace(fp, control.reg_write,     "control|6-reg_write");
+    sc_trace(fp, control.mem_to_reg,    "control|7-mem_to_reg");
+    sc_trace(fp, control.branch,        "control|7-branch");
 
     sc_trace(fp, ex_adder.a, "ex_adder|1-0-a");
     sc_trace(fp, ex_adder.b, "ex_adder|1-1-b");
@@ -645,6 +649,24 @@ int sc_main(int argc, char *argv[]) {
     sc_trace(fp, ex_st_mux.b,   "ex_st_mux|1-1-b");
     sc_trace(fp, ex_st_mux.sel, "ex_st_mux|1-2-sel");
     sc_trace(fp, ex_st_mux.out, "ex_st_mux|1-3-out");
+
+
+    // ### J-TYPE INST CHECK ###
+    // Adder
+    sc_trace(fp, ex_adder.a,        "J-TYPE|ex_adder|0-a");
+    sc_trace(fp, ex_adder.b,        "J-TYPE|ex_adder|1-b");
+    sc_trace(fp, ex_adder.s,        "J-TYPE|ex_adder|2-s");
+    // Mux
+    sc_trace(fp, if_mux.a,          "J-TYPE|if_mux|0-a");
+    sc_trace(fp, if_mux.b,          "J-TYPE|if_mux|1-b");
+    sc_trace(fp, if_mux.sel,        "J-TYPE|if_mux|2-sel");
+    sc_trace(fp, if_mux.out,        "J-TYPE|if_mux|3-out");
+    // Alu
+    sc_trace(fp, alu.a,             "J-TYPE|alu|0-a");       
+    sc_trace(fp, alu.b,             "J-TYPE|alu|1-b");        
+    sc_trace(fp, alu.alu_op,        "J-TYPE|alu|2-alu_op"); 
+    sc_trace(fp, alu.result,        "J-TYPE|alu|3-result");       
+    sc_trace(fp, alu.zero,          "J-TYPE|alu|4-zero");           
 
     sc_start();
 
