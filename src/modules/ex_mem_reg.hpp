@@ -54,8 +54,8 @@ SC_MODULE(ex_mem_reg) {
         mem_write_out.write(memory[6].to_int());
         mem_read_out.write(memory[7].to_int());
         // WB
-        reg_write_out.write(memory[3].to_int());
-        mem_to_reg_out.write(memory[4].to_int());
+        reg_write_out.write(memory[8].to_int());
+        mem_to_reg_out.write(memory[9].to_int());
     }
 
     SC_CTOR(ex_mem_reg) {

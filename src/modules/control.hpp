@@ -48,13 +48,13 @@ SC_MODULE(control) {
                 break;
             case OP_LD: // i-type instructions
                 // EX
-                //_alu_src = true;
-                _alu_src = false; // NOTE: changed
+                _alu_src = true;
                 // M
                 _mem_read = true;
                 // WB
                 _reg_write = true;
                 _mem_to_reg = true;
+                std::cout << "LD " << _reg_write << std::endl;
                 break;
             case OP_ST:
                 // EX

@@ -565,11 +565,11 @@ int sc_main(int argc, char *argv[]) {
     sc_trace(fp, id_ex_reg.reg_write_in,    "id_ex_reg|ctrl|1-27-reg_write_in");
     sc_trace(fp, id_ex_reg.reg_write_out,   "id_ex_reg|ctrl|1-28-reg_write_out");
 
-    sc_trace(fp, data_memory.address, "data_memory|1-2-address");
-    sc_trace(fp, data_memory.write_data, "data_memory|1-2-write_data");
-    sc_trace(fp, data_memory.data, "data_memory|1-2-data");
-    sc_trace(fp, data_memory.mem_read, "data_memory|1-2-mem_read");
-    sc_trace(fp, data_memory.mem_write, "data_memory|1-2-mem_write");
+    sc_trace(fp, data_memory.address,       "data_memory|1-0-address");
+    sc_trace(fp, data_memory.write_data,    "data_memory|1-1-write_data");
+    sc_trace(fp, data_memory.data,          "data_memory|1-2-data");
+    sc_trace(fp, data_memory.mem_read,      "data_memory|crtl|1-0-mem_read");
+    sc_trace(fp, data_memory.mem_write,     "data_memory|crtl|1-1-mem_write");
 
     sc_trace(fp, wb_mux.a, "wb_mux|1-2-a");
     sc_trace(fp, wb_mux.b, "wb_mux|1-2-b");
@@ -637,6 +637,11 @@ int sc_main(int argc, char *argv[]) {
     sc_trace(fp, mem_wb_reg.mem_to_reg_out, "mem_wb_reg|ctrl|1-1-mem_to_reg_out");
     sc_trace(fp, mem_wb_reg.reg_write_in,   "mem_wb_reg|ctrl|1-2-reg_write_in");
     sc_trace(fp, mem_wb_reg.reg_write_out,  "mem_wb_reg|ctrl|1-3-reg_write_out");
+
+    sc_trace(fp, ex_st_mux.a,   "ex_st_mux|1-0-a");
+    sc_trace(fp, ex_st_mux.b,   "ex_st_mux|1-1-b");
+    sc_trace(fp, ex_st_mux.sel, "ex_st_mux|1-2-sel");
+    sc_trace(fp, ex_st_mux.out, "ex_st_mux|1-3-out");
 
     sc_start();
 
