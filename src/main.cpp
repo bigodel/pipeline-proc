@@ -568,6 +568,9 @@ int sc_main(int argc, char *argv[]) {
     sc_trace(fp, data_memory.address,       "data_memory|1-0-address");
     sc_trace(fp, data_memory.write_data,    "data_memory|1-1-write_data");
     sc_trace(fp, data_memory.data,          "data_memory|1-2-data");
+    for (int i = 0; i < 9; i++) {
+        sc_trace(fp, data_memory.memory[i],         "data_memory|1-3-memory-" + std::to_string(i));
+    }
     sc_trace(fp, data_memory.mem_read,      "data_memory|crtl|1-0-mem_read");
     sc_trace(fp, data_memory.mem_write,     "data_memory|crtl|1-1-mem_write");
 

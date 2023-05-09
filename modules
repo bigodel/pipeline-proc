@@ -52,4 +52,5 @@ J-type Instructions
 
 
 
-ld 1 0 2 ---> $0 = mem[$1 + 7]
+ld 1 0 2 ---> $0 = mem[$1 + 2]
+st 1 0 2 ---> mem[$1 + 2] = $0
