@@ -72,6 +72,7 @@ int sc_main(int argc, char *argv[]) {
     sc_signal<WORD> se_output;
     // control signals
     // EX
+    sc_signal<bool> jump;
     sc_signal<ALU_OP> alu_op;
     sc_signal<bool> alu_src;
     sc_signal<bool> reg_dst;
@@ -96,6 +97,7 @@ int sc_main(int argc, char *argv[]) {
     sc_signal<ALU_OP> id_ex_alu_op_out;
     sc_signal<bool> id_ex_alu_src_out;
     sc_signal<bool> id_ex_reg_dst_out;
+    sc_signal<bool> id_ex_jump_out;
     // M
     sc_signal<bool> id_ex_branch_out;
     sc_signal<bool> id_ex_mem_write_out;
@@ -107,6 +109,9 @@ int sc_main(int argc, char *argv[]) {
     // EX stage ----------------------------------------------------------------
     // adder
     sc_signal<WORD> ex_adder_s;
+
+    // Jump mux
+    sc_signal<WORD> ex_jump_mux_out;
     // alu
     sc_signal<WORD> alu_result;
     sc_signal<bool> alu_zero;
@@ -182,7 +187,7 @@ int sc_main(int argc, char *argv[]) {
     if_id_reg.inst_out(if_id_inst_out); // output
     if_id_reg.if_adder_s_out(if_id_adder_s_out); // output
 
-    control control("control_unit");
+    control control("control");
     control.instruction(if_id_inst_out);
     // EX
     control.alu_op(alu_op);
@@ -195,6 +200,7 @@ int sc_main(int argc, char *argv[]) {
     control.reg_write(reg_write);
     control.mem_to_reg(mem_to_reg);
     control.branch(branch);
+    control.jump(jump);
 
     register_file register_file("register_file");
     register_file.reg1(if_id_inst_out);            // input
@@ -235,6 +241,9 @@ int sc_main(int argc, char *argv[]) {
 
     id_ex_reg.reg_dst_in(reg_dst);
     id_ex_reg.reg_dst_out(id_ex_reg_dst_out);
+
+    id_ex_reg.jump_in(jump);
+    id_ex_reg.jump_out(id_ex_jump_out);
     // M
     id_ex_reg.branch_in(branch);
     id_ex_reg.branch_out(id_ex_branch_out);
@@ -261,6 +270,12 @@ int sc_main(int argc, char *argv[]) {
     ex_adder.b(id_ex_inst_15_0_out); // input
     ex_adder.s(ex_adder_s);      // output
 
+    mux ex_jump_mux("ex_jump_mux");
+    ex_jump_mux.a(ex_adder_s);     // input
+    ex_jump_mux.b(id_ex_inst_15_0_out); // input
+    ex_jump_mux.sel(id_ex_jump_out); // input
+    ex_jump_mux.out(ex_jump_mux_out);    // output
+
     mux ex_alu_mux("ex_alu_mux");
     ex_alu_mux.a(id_ex_data2_out);     // input
     ex_alu_mux.b(id_ex_inst_15_0_out); // input
@@ -283,7 +298,8 @@ int sc_main(int argc, char *argv[]) {
 
     ex_mem_reg ex_mem_reg("ex_mem_reg");
     ex_mem_reg.clock(clock);
-    ex_mem_reg.adder_in(ex_adder_s);
+    // TODO: change the name
+    ex_mem_reg.adder_in(ex_jump_mux_out);
     ex_mem_reg.adder_out(ex_mem_adder_out);
 
     ex_mem_reg.alu_result_in(alu_result);
@@ -455,12 +471,15 @@ int sc_main(int argc, char *argv[]) {
         case OP_J: // j-type
             instruction = OP_J;
             jtype = true;
+            break;
         case OP_JN:
             instruction = OP_JN;
             jtype = true;
+            break;
         case OP_JZ:
             instruction = OP_JZ;
             jtype = true;
+            break;
         }
 
         if (rtype) { // r-type
@@ -607,6 +626,7 @@ int sc_main(int argc, char *argv[]) {
     sc_trace(fp, control.reg_write,     "control|6-reg_write");
     sc_trace(fp, control.mem_to_reg,    "control|7-mem_to_reg");
     sc_trace(fp, control.branch,        "control|7-branch");
+    sc_trace(fp, control.jump,        "control|8-jump");
 
     sc_trace(fp, ex_adder.a, "ex_adder|1-0-a");
     sc_trace(fp, ex_adder.b, "ex_adder|1-1-b");
@@ -667,6 +687,11 @@ int sc_main(int argc, char *argv[]) {
     sc_trace(fp, alu.alu_op,        "J-TYPE|alu|2-alu_op"); 
     sc_trace(fp, alu.result,        "J-TYPE|alu|3-result");       
     sc_trace(fp, alu.zero,          "J-TYPE|alu|4-zero");           
+
+    sc_trace(fp, ex_jump_mux.a,     "ex_jump_mux|0-a");     // input
+    sc_trace(fp, ex_jump_mux.b,     "ex_jump_mux|1-b"); // input
+    sc_trace(fp, ex_jump_mux.sel,   "ex_jump_mux|2-sel"); // input
+    sc_trace(fp, ex_jump_mux.out,   "ex_jump_mux|3-out");    // output
 
     sc_start();
 

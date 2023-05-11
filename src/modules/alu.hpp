@@ -27,7 +27,8 @@ SC_MODULE(alu) {
             //std::cout << a.read().to_int() - b.read().to_int() << std::endl;
             WORD sub(a.read().to_int() - b.read().to_int());
             res = sub;
-            is_zero = res == 0;
+            // NOTE: changed
+            is_zero = res.to_int() < 0;
         }
         else if (alu_op.read() == AND) {
             res = a.read() & b.read();

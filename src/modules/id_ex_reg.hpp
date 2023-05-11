@@ -13,8 +13,10 @@ SC_MODULE(id_ex_reg) {
     // EX
     sc_in<bool> reg_dst_in, alu_src_in;
     sc_in<ALU_OP> alu_op_in;
+    sc_in<bool> jump_in;
     sc_out<bool> reg_dst_out, alu_src_out;
     sc_out<ALU_OP> alu_op_out;
+    sc_out<bool> jump_out;
     // M
     sc_in<bool> branch_in, mem_write_in, mem_read_in;
     sc_out<bool> branch_out, mem_write_out, mem_read_out;
@@ -28,7 +30,7 @@ SC_MODULE(id_ex_reg) {
     sc_out<REG_ADDR> inst_20_16_out, inst_15_11_out;
     sc_out<WORD> adder_out;
 
-    WORD memory[14] = {0};
+    WORD memory[15] = {0};
 
     void read() {
         // read
@@ -44,13 +46,14 @@ SC_MODULE(id_ex_reg) {
         memory[6] = reg_dst_in.read();
         memory[7] = alu_src_in.read();
         memory[8] = alu_op_in.read();
+        memory[9] = jump_in.read();
         // M
-        memory[9] = branch_in.read();
-        memory[10] = mem_write_in.read();
-        memory[11] = mem_read_in.read();
+        memory[10] = branch_in.read();
+        memory[11] = mem_write_in.read();
+        memory[12] = mem_read_in.read();
         // WB
-        memory[12] = reg_write_in.read();
-        memory[13] = mem_to_reg_in.read();
+        memory[13] = reg_write_in.read();
+        memory[14] = mem_to_reg_in.read();
     }
 
     void write() {
@@ -67,13 +70,14 @@ SC_MODULE(id_ex_reg) {
         reg_dst_out.write(memory[6].to_int());
         alu_src_out.write(memory[7].to_int());
         alu_op_out.write(memory[8]);
+        jump_out.write(memory[9].to_int());
         // M
-        branch_out.write(memory[9].to_int());
-        mem_write_out.write(memory[10].to_int());
-        mem_read_out.write(memory[11].to_int());
+        branch_out.write(memory[10].to_int());
+        mem_write_out.write(memory[11].to_int());
+        mem_read_out.write(memory[12].to_int());
         // WB
-        reg_write_out.write(memory[12].to_int());
-        mem_to_reg_out.write(memory[13].to_int());
+        reg_write_out.write(memory[13].to_int());
+        mem_to_reg_out.write(memory[14].to_int());
     }
 
     SC_CTOR(id_ex_reg) {

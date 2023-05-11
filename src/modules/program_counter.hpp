@@ -6,7 +6,7 @@ SC_MODULE(program_counter) {
     sc_in<WORD> jump_address;
     sc_out<WORD> address;
 
-    //int current_address = -1;
+    //in current_address = -1;
 
     void increment() {
         int jump_addr = jump_address.read().to_int();

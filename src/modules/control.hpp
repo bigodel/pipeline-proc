@@ -9,6 +9,7 @@ SC_MODULE(control) {
     sc_out<bool> reg_write;
 
     sc_out<bool> branch;
+    sc_out<bool> jump;
 
     // alu output
     sc_out<ALU_OP> alu_op;
@@ -29,12 +30,14 @@ SC_MODULE(control) {
         bool _mem_write = false;
         bool _mem_read = false;
         bool _branch = false;
+        bool _jump = false;
         // WB
         bool _reg_write = false;
         bool _mem_to_reg = false;
 
         WORD inst = instruction.read();
         OP opcode = inst.range(31, 26);
+        //std::cout << "OPCODE " << opcode << std::endl;
         switch (opcode.to_int()) {
             case OP_AND: // r-type instructions
             case OP_OR:
@@ -67,7 +70,13 @@ SC_MODULE(control) {
                 _mem_write = true;
                 break;
             case OP_J: // j-type instructions
+                _jump = true;
+                _branch = true;
+                break;
             case OP_JN:
+                _alu_op = SUB;
+                _branch = true;
+                break;
             case OP_JZ:
                 _alu_op = ADD;
                 _branch = true;
@@ -77,17 +86,17 @@ SC_MODULE(control) {
         }
         // write values (if instruction is invalid it will write false)
         // EX
+        jump.write(_jump);
         alu_op.write(_alu_op);
         alu_src.write(_alu_src);
         reg_dst.write(_reg_dst);
         // M
+        branch.write(_branch);
         mem_write.write(_mem_write);
         mem_read.write(_mem_read);
         // WB
         reg_write.write(_reg_write);
         mem_to_reg.write(_mem_to_reg);
-
-        branch.write(_branch);
     }
 
     SC_CTOR(control) {
