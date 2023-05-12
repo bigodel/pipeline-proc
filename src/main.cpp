@@ -19,11 +19,13 @@ using namespace std;
 #include "modules/instruction_memory.hpp"
 #include "modules/mem_wb_reg.hpp"
 #include "modules/mux.hpp"
+#include "modules/mux3x1.hpp"
 #include "modules/reg_addr_mux.hpp"
 #include "modules/program_counter.hpp"
 #include "modules/register_file.hpp"
 #include "modules/shift_left_2.hpp"
 #include "modules/sign_extender.hpp"
+#include "modules/fowarding_unity.hpp"
 
 SC_MODULE(testbench) {
     sc_in_clk clock;
@@ -92,6 +94,7 @@ int sc_main(int argc, char *argv[]) {
     sc_signal<WORD> id_ex_inst_15_0_out;
     sc_signal<REG_ADDR> id_ex_inst_20_16_out;
     sc_signal<REG_ADDR> id_ex_inst_15_11_out;
+    sc_signal<REG_ADDR> id_ex_inst_25_21_out;
     // control signals
     // EX
     sc_signal<ALU_OP> id_ex_alu_op_out;
@@ -157,6 +160,9 @@ int sc_main(int argc, char *argv[]) {
     // wb mux
     sc_signal<WORD> wb_mux_out;
     // WB stage ----------------------------------------------------------------
+
+    // HAZARD
+    sc_signal<int> ex_upper_alu_mux, ex_lower_alu_mux;
 
     // ### COMPONENTS ###
     program_counter program_counter("program_counter");
@@ -224,12 +230,15 @@ int sc_main(int argc, char *argv[]) {
     id_ex_reg.data2_in(rf_data2);
     id_ex_reg.data1_out(id_ex_data1_out);
     id_ex_reg.data2_out(id_ex_data2_out);
+
     id_ex_reg.inst_15_0_in(se_output);
     id_ex_reg.inst_20_16_in(if_id_inst_out);
     id_ex_reg.inst_15_11_in(if_id_inst_out);
+
     id_ex_reg.inst_15_0_out(id_ex_inst_15_0_out);
     id_ex_reg.inst_20_16_out(id_ex_inst_20_16_out);
     id_ex_reg.inst_15_11_out(id_ex_inst_15_11_out);
+    id_ex_reg.inst_25_21_out(id_ex_inst_25_21_out);
 
     // control signals
     // EX
@@ -276,14 +285,31 @@ int sc_main(int argc, char *argv[]) {
     ex_jump_mux.sel(id_ex_jump_out); // input
     ex_jump_mux.out(ex_jump_mux_out);    // output
 
+    sc_signal<WORD> ex_mux2mux3x1;
     mux ex_alu_mux("ex_alu_mux");
     ex_alu_mux.a(id_ex_data2_out);     // input
     ex_alu_mux.b(id_ex_inst_15_0_out); // input
     ex_alu_mux.sel(id_ex_alu_src_out); // input
-    ex_alu_mux.out(ex_alu_mux_out);    // output
+    ex_alu_mux.out(ex_mux2mux3x1);    // output
+    
+    mux3x1 ex_alu_lower_mux3x1("ex_alu_lower_mux3x1");
+    ex_alu_lower_mux3x1.a(ex_mux2mux3x1);     // input
+    ex_alu_lower_mux3x1.b(ex_mem_alu_result_out); // input
+    ex_alu_lower_mux3x1.c(wb_mux_out); // input
+    ex_alu_lower_mux3x1.sel(ex_lower_alu_mux); // input
+    ex_alu_lower_mux3x1.out(ex_alu_mux_out);    // output
+    
+
+    sc_signal<WORD> ex_upper_mux_alu;
+    mux3x1 ex_alu_upper_mux3x1("ex_alu_upper_mux3x1");
+    ex_alu_upper_mux3x1.a(id_ex_data1_out);     // input
+    ex_alu_upper_mux3x1.b(wb_mux_out); // input
+    ex_alu_upper_mux3x1.c(ex_mem_alu_result_out); // input
+    ex_alu_upper_mux3x1.sel(ex_upper_alu_mux); // input
+    ex_alu_upper_mux3x1.out(ex_upper_mux_alu);    // output
 
     alu alu("alu");
-    alu.a(id_ex_data1_out);       // input
+    alu.a(ex_upper_mux_alu);       // input
     alu.b(ex_alu_mux_out);        // input
     alu.alu_op(id_ex_alu_op_out); // input
     alu.result(alu_result);       // output
@@ -367,6 +393,20 @@ int sc_main(int argc, char *argv[]) {
     wb_mux.b(mem_wb_alu_result_out);
     wb_mux.sel(mem_wb_mem_to_reg_out);
     wb_mux.out(wb_mux_out);
+
+    // ### HAZARDS ###
+    fowarding_unity fowarding_unity("fowarding_unity");
+    fowarding_unity.ex_rs_in(id_ex_inst_25_21_out);
+    fowarding_unity.ex_rt_in(id_ex_inst_20_16_out);
+    fowarding_unity.mem_rd_in(ex_mem_st_mux_out);
+    fowarding_unity.wb_rd_in(mem_wb_st_mux_out);
+
+    fowarding_unity.mem_reg_write(ex_mem_mem_to_reg_out);
+    fowarding_unity.wb_reg_write(mem_wb_mem_to_reg_out);
+
+    fowarding_unity.ex_upper_alu_mux(ex_upper_alu_mux);
+    fowarding_unity.ex_lower_alu_mux(ex_lower_alu_mux);
+
 
     // # READ DATA FILE AND LOAD INTO DATA MEMORY #
     // fstream data_file;
@@ -692,6 +732,16 @@ int sc_main(int argc, char *argv[]) {
     sc_trace(fp, ex_jump_mux.b,     "ex_jump_mux|1-b"); // input
     sc_trace(fp, ex_jump_mux.sel,   "ex_jump_mux|2-sel"); // input
     sc_trace(fp, ex_jump_mux.out,   "ex_jump_mux|3-out");    // output
+
+    // ## HAZARD DETECTION ##
+    sc_trace(fp, fowarding_unity.ex_rs_in,          "hazard|fowarding_unity|0-ex_rs_in");
+    sc_trace(fp, fowarding_unity.ex_rt_in,          "hazard|fowarding_unity|1-ex_rt_in");
+    sc_trace(fp, fowarding_unity.mem_rd_in,         "hazard|fowarding_unity|2-mem_rd_in");
+    sc_trace(fp, fowarding_unity.wb_rd_in,          "hazard|fowarding_unity|3-wb_rd_in");
+    sc_trace(fp, fowarding_unity.mem_reg_write,     "hazard|fowarding_unity|4-mem_reg_write");
+    sc_trace(fp, fowarding_unity.wb_reg_write,      "hazard|fowarding_unity|5-wb_reg_write");
+    sc_trace(fp, fowarding_unity.ex_upper_alu_mux,  "hazard|fowarding_unity|6-ex_upper_alu_mux");
+    sc_trace(fp, fowarding_unity.ex_lower_alu_mux,  "hazard|fowarding_unity|7-ex_lower_alu_mux");
 
     sc_start();
 
