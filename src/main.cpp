@@ -104,6 +104,7 @@ int sc_main(int argc, char *argv[]) {
     sc_signal<REG_ADDR> id_ex_inst_20_16_out;
     sc_signal<REG_ADDR> id_ex_inst_15_11_out;
     sc_signal<REG_ADDR> id_ex_inst_25_21_out;
+    sc_signal<WORD> id_ex_inst_out;
     // control signals
     // EX
     sc_signal<ALU_OP> id_ex_alu_op_out;
@@ -250,6 +251,7 @@ int sc_main(int argc, char *argv[]) {
     id_ex_reg.inst_20_16_out(id_ex_inst_20_16_out);
     id_ex_reg.inst_15_11_out(id_ex_inst_15_11_out);
     id_ex_reg.inst_25_21_out(id_ex_inst_25_21_out);
+    id_ex_reg.id_ex_inst_out(id_ex_inst_out);
 
     // control signals
     // EX
@@ -424,7 +426,7 @@ int sc_main(int argc, char *argv[]) {
     // # Input #
     detection_unity.if_id_reg_rs(if_id_inst_out);
     detection_unity.if_id_reg_rt(if_id_inst_out);
-    detection_unity.id_ex_reg_rt(id_ex_inst_15_0_out);
+    detection_unity.id_ex_reg_rt(id_ex_inst_out);
 
     // Control
     detection_unity.id_ex_mem_read(id_ex_mem_read_out);

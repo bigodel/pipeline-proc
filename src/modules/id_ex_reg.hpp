@@ -30,7 +30,9 @@ SC_MODULE(id_ex_reg) {
     sc_out<REG_ADDR> inst_25_21_out, inst_20_16_out, inst_15_11_out;
     sc_out<WORD> adder_out;
 
-    WORD memory[16] = {0};
+    sc_out<WORD> id_ex_inst_out;
+
+    WORD memory[17] = {0};
 
     void read() {
         // read
@@ -55,6 +57,7 @@ SC_MODULE(id_ex_reg) {
         memory[13] = reg_write_in.read();
         memory[14] = mem_to_reg_in.read();
         memory[15] = inst_15_11_in.read().range(25, 21);
+        memory[16] = inst_20_16_in.read();
     }
 
     void write() {
@@ -80,6 +83,7 @@ SC_MODULE(id_ex_reg) {
         reg_write_out.write(memory[13].to_int());
         mem_to_reg_out.write(memory[14].to_int());
         inst_25_21_out.write(memory[15]);
+        id_ex_inst_out.write(memory[16]);
     }
 
     SC_CTOR(id_ex_reg) {

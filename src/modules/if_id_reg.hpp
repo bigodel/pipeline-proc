@@ -23,10 +23,8 @@ SC_MODULE(if_id_reg) {
 
     void write() {
         // write
-        if(if_id_write.read()) {
             inst_out.write(memory[0]);
             if_adder_s_out.write(memory[1]);
-        }
     }
 
     SC_CTOR(if_id_reg) {
