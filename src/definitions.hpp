@@ -12,6 +12,7 @@
 // constants
 #define INST_COUNT 256
 #define REG_COUNT 32
+#define MEM_COUNT 1024
 
 // alu ops
 #define ADD 0b000

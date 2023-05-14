@@ -14,7 +14,7 @@ SC_MODULE(register_file) {
     // output
     sc_out<WORD> data1, data2;
 
-    WORD registers[REG_COUNT] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
+    WORD registers[REG_COUNT];
 
     void register_process() {
         int rs = reg1.read().range(25, 21).to_int();
@@ -30,6 +30,9 @@ SC_MODULE(register_file) {
     }
 
     SC_CTOR(register_file) {
+        for (int i = 0; i < REG_COUNT; ++i)
+            registers[i] = i;
+
         SC_METHOD(register_process);
         sensitive << reg1 << reg2 << write_reg << reg_write << write_data;
     }
