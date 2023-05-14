@@ -1,0 +1,10 @@
+### foward_unity ###
+add 1 2 3
+sub 4 5 6
+
+add 1 2 3
+sub 3 4 5
+
+### detection_unity ###
+ld 0 1 0
+and 1 0 5

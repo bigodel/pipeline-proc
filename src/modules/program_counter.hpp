@@ -3,16 +3,19 @@
 
 SC_MODULE(program_counter) {
     sc_in_clk clock;
+
     sc_in<WORD> jump_address;
     sc_out<WORD> address;
 
-    //in current_address = -1;
+    // # Control #
+    sc_in<bool> pc_write;
 
     void increment() {
-        int jump_addr = jump_address.read().to_int();
+        if (pc_write.read()) {
+            int jump_addr = jump_address.read().to_int();
 
-        address.write(jump_addr);
-
+            address.write(jump_addr);
+        }
     }
 
     SC_CTOR(program_counter) {

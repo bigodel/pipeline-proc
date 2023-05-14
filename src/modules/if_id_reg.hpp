@@ -10,6 +10,9 @@ SC_MODULE(if_id_reg) {
     // output
     sc_out<WORD> inst_out, if_adder_s_out;
 
+    // # Control #
+    sc_in<bool> if_id_write;
+
     WORD memory[2] = {0};
 
     void read() {
@@ -20,8 +23,10 @@ SC_MODULE(if_id_reg) {
 
     void write() {
         // write
-        inst_out.write(memory[0]);
-        if_adder_s_out.write(memory[1]);
+        if(if_id_write.read()) {
+            inst_out.write(memory[0]);
+            if_adder_s_out.write(memory[1]);
+        }
     }
 
     SC_CTOR(if_id_reg) {
