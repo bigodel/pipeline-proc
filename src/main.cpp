@@ -28,6 +28,7 @@ using namespace std;
 #include "modules/sign_extender.hpp"
 #include "modules/fowarding_unity.hpp"
 #include "modules/detection_unity.hpp"
+#include "modules/equals.hpp"
 
 SC_MODULE(testbench) {
     sc_in_clk clock;
@@ -121,10 +122,12 @@ int sc_main(int argc, char *argv[]) {
 
     // EX stage ----------------------------------------------------------------
     // adder
-    sc_signal<WORD> ex_adder_s;
+    //sc_signal<WORD> ex_adder_s;
+    sc_signal<WORD> id_jump_adder_s;
 
     // Jump mux
-    sc_signal<WORD> ex_jump_mux_out;
+    //sc_signal<WORD> ex_jump_mux_out;
+    sc_signal<WORD> id_jump_mux_out;
     // alu
     sc_signal<WORD> alu_result;
     sc_signal<bool> alu_zero;
@@ -193,7 +196,8 @@ int sc_main(int argc, char *argv[]) {
     mux if_mux("if_mux");
     if_mux.a(if_adder_s);             // input
     //if_mux.b(ex_mem_alu_adder_s_out); // input
-    if_mux.b(ex_mem_adder_out); // input
+    //if_mux.b(ex_mem_adder_out); // input
+    if_mux.b(id_jump_mux_out); // input
     if_mux.sel(pc_src);               // input
     if_mux.out(if_mux_jump_address);  // output
 
@@ -287,16 +291,33 @@ int sc_main(int argc, char *argv[]) {
     //shift_left_2.in(id_ex_inst_15_0_out); // input
     //shift_left_2.out(sl2_out);            // output
 
-    adder ex_adder("ex_adder");
-    ex_adder.a(id_ex_adder_out); // input
-    ex_adder.b(id_ex_inst_15_0_out); // input
-    ex_adder.s(ex_adder_s);      // output
+    //adder ex_adder("ex_adder");
+    //ex_adder.a(id_ex_adder_out); // input
+    //ex_adder.b(id_ex_inst_15_0_out); // input
+    //ex_adder.s(ex_adder_s);      // output
 
-    mux ex_jump_mux("ex_jump_mux");
-    ex_jump_mux.a(ex_adder_s);     // input
-    ex_jump_mux.b(id_ex_inst_15_0_out); // input
-    ex_jump_mux.sel(id_ex_jump_out); // input
-    ex_jump_mux.out(ex_jump_mux_out);    // output
+    //mux ex_jump_mux("ex_jump_mux");
+    //ex_jump_mux.a(ex_adder_s);     // input
+    //ex_jump_mux.b(id_ex_inst_15_0_out); // input
+    //ex_jump_mux.sel(id_ex_jump_out); // input
+    //ex_jump_mux.out(ex_jump_mux_out);    // output
+
+    adder id_jump_adder("id_jump_adder");
+    id_jump_adder.a(if_adder_s); // input
+    id_jump_adder.b(se_output); // input
+    id_jump_adder.s(id_jump_adder_s);      // output
+
+    mux id_jump_mux("id_jump_mux");
+    id_jump_mux.a(id_jump_adder_s);     // input
+    id_jump_mux.b(se_output); // input
+    id_jump_mux.sel(jump); // input
+    id_jump_mux.out(id_jump_mux_out);    // output
+
+    sc_signal<bool> equals_result;
+    equals equals("equals");
+    equals.a(rf_data1);
+    equals.b(rf_data2);
+    equals.result(equals_result);
 
     sc_signal<WORD> ex_mux2mux3x1;
     mux ex_alu_mux("ex_alu_mux");
@@ -338,7 +359,7 @@ int sc_main(int argc, char *argv[]) {
     ex_mem_reg ex_mem_reg("ex_mem_reg");
     ex_mem_reg.clock(clock);
     // TODO: change the name
-    ex_mem_reg.adder_in(ex_jump_mux_out);
+    ex_mem_reg.adder_in(id_jump_mux_out);
     ex_mem_reg.adder_out(ex_mem_adder_out);
 
     ex_mem_reg.alu_result_in(alu_result);
@@ -370,9 +391,14 @@ int sc_main(int argc, char *argv[]) {
     ex_mem_reg.reg_write_in(id_ex_reg_write_out);
     ex_mem_reg.reg_write_out(ex_mem_reg_write_out);
 
+    //and_gate and_gate("and_gate");
+    //and_gate.a(ex_mem_branch_out);
+    //and_gate.b(ex_mem_alu_zero_out);
+    //and_gate.out(pc_src);
+
     and_gate and_gate("and_gate");
-    and_gate.a(ex_mem_branch_out);
-    and_gate.b(ex_mem_alu_zero_out);
+    and_gate.a(branch);
+    and_gate.b(equals_result);
     and_gate.out(pc_src);
 
     data_memory data_memory("data_memory");
@@ -708,9 +734,9 @@ int sc_main(int argc, char *argv[]) {
     sc_trace(fp, control.branch,        "control|7-branch");
     sc_trace(fp, control.jump,        "control|8-jump");
 
-    sc_trace(fp, ex_adder.a, "ex_adder|1-0-a");
-    sc_trace(fp, ex_adder.b, "ex_adder|1-1-b");
-    sc_trace(fp, ex_adder.s, "ex_adder|1-2-s");
+    //sc_trace(fp, ex_adder.a, "ex_adder|1-0-a");
+    //sc_trace(fp, ex_adder.b, "ex_adder|1-1-b");
+    //sc_trace(fp, ex_adder.s, "ex_adder|1-2-s");
 
     sc_trace(fp, ex_mem_reg.adder_in,       "ex_mem_reg|1-0-adder_in");
     sc_trace(fp, ex_mem_reg.adder_out,      "ex_mem_reg|1-1-adder_out");
@@ -753,9 +779,9 @@ int sc_main(int argc, char *argv[]) {
 
     // ### J-TYPE INST CHECK ###
     // Adder
-    sc_trace(fp, ex_adder.a,        "J-TYPE|ex_adder|0-a");
-    sc_trace(fp, ex_adder.b,        "J-TYPE|ex_adder|1-b");
-    sc_trace(fp, ex_adder.s,        "J-TYPE|ex_adder|2-s");
+    //sc_trace(fp, ex_adder.a,        "J-TYPE|ex_adder|0-a");
+    //sc_trace(fp, ex_adder.b,        "J-TYPE|ex_adder|1-b");
+    //sc_trace(fp, ex_adder.s,        "J-TYPE|ex_adder|2-s");
     // Mux
     sc_trace(fp, if_mux.a,          "J-TYPE|if_mux|0-a");
     sc_trace(fp, if_mux.b,          "J-TYPE|if_mux|1-b");
@@ -768,10 +794,10 @@ int sc_main(int argc, char *argv[]) {
     sc_trace(fp, alu.result,        "J-TYPE|alu|3-result");       
     sc_trace(fp, alu.zero,          "J-TYPE|alu|4-zero");           
 
-    sc_trace(fp, ex_jump_mux.a,     "ex_jump_mux|0-a");     // input
-    sc_trace(fp, ex_jump_mux.b,     "ex_jump_mux|1-b"); // input
-    sc_trace(fp, ex_jump_mux.sel,   "ex_jump_mux|2-sel"); // input
-    sc_trace(fp, ex_jump_mux.out,   "ex_jump_mux|3-out");    // output
+    //sc_trace(fp, ex_jump_mux.a,     "ex_jump_mux|0-a");     // input
+    //sc_trace(fp, ex_jump_mux.b,     "ex_jump_mux|1-b"); // input
+    //sc_trace(fp, ex_jump_mux.sel,   "ex_jump_mux|2-sel"); // input
+    //sc_trace(fp, ex_jump_mux.out,   "ex_jump_mux|3-out");    // output
 
     // ## HAZARD ##
     // # foward_unity #
