@@ -586,14 +586,17 @@ int sc_main(int argc, char *argv[]) {
             int imm;
 
             inst_file >> rs >> rt >> imm;
-            if (branch) imm--;
+            //imm--;
 
             instruction = (instruction, REG_ADDR(rs), REG_ADDR(rt), IMM(imm));
+            //std::cout << "INSTRUCTION " << instruction << std::endl;
+            //std::cout << "LEN " << instruction.length() << std::endl;
         } else if (jump) {
             int imm;
 
             inst_file >> imm;
-            imm--;
+            //std::cout << "IMM  " << imm << std::endl;
+            //imm--;
 
             instruction = (instruction, sc_bv<10>(0), IMM(imm));
         }

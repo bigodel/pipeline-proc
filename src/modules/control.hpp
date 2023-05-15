@@ -77,10 +77,12 @@ SC_MODULE(control) {
             break;
         case OP_JN:
             _alu_op = SUB;
+            _jump = true;
             _branch = _flush = true;
             break;
         case OP_JZ:
             _alu_op = ADD;
+            _jump = true;
             _branch = _flush = true;
             break;
         default:
