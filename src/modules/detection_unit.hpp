@@ -1,13 +1,12 @@
 #include "definitions.hpp"
 #include <systemc.h>
 
-SC_MODULE(detection_unity) {
+SC_MODULE(detection_unit) {
     sc_in<WORD> if_id_reg_rs;
     sc_in<WORD> if_id_reg_rt;
     sc_in<WORD> id_ex_reg_rt;
 
     // ## CONTROL ##
-    sc_in<bool> branch;
     sc_in<bool> id_ex_mem_read;
 
     // Force nop ("no operation") instruction into EX stage on next clock cycle
@@ -27,17 +26,12 @@ SC_MODULE(detection_unity) {
         bool _pc_write = true;
         bool _if_id_write = true;
 
-        if (branch) {
-            _if_id_write = false;
-        }
-
         // Instruction in EX is a load
         if (id_ex_mem_read) {
             // Instruction in ID has a source register that matches
             // the load destination register
             if (_id_ex_reg_rt == _if_id_reg_rs ||
                 _id_ex_reg_rt == _if_id_reg_rt) {
-
                 // Force nop (“no operation”) instruction into
                 // EX stage on next clock cycle
                 _control_mux_nop = true;
@@ -52,7 +46,7 @@ SC_MODULE(detection_unity) {
         if_id_write.write(_if_id_write);
     }
 
-    SC_CTOR(detection_unity)
+    SC_CTOR(detection_unit)
         : if_id_reg_rs("if_id_reg_rs"), if_id_reg_rt("if_id_reg_rt"),
           id_ex_reg_rt("id_ex_reg_rt"), id_ex_mem_read("id_ex_mem_read") {
         SC_METHOD(run);

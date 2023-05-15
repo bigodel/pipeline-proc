@@ -1,7 +1,7 @@
 #include "definitions.hpp"
 #include <systemc.h>
 
-SC_MODULE(fowarding_unity) {
+SC_MODULE(fowarding_unit) {
     sc_in<REG_ADDR> ex_rs_in, ex_rt_in;
 
     sc_in<REG_ADDR> mem_rd_in, wb_rd_in;
@@ -16,8 +16,8 @@ SC_MODULE(fowarding_unity) {
     int _ex_lower_alu_mux = 0;
 
     void run() {
-        std::cout << ex_rs_in.read() << " " << ex_rt_in.read()
-                << " " << wb_rd_in.read() << " " << mem_rd_in.read() << std::endl;
+        std::cout << ex_rs_in.read() << " " << ex_rt_in.read() << " "
+                  << wb_rd_in.read() << " " << mem_rd_in.read() << std::endl;
 
         if (wb_reg_write.read() && wb_rd_in.read() != 0) {
             if (ex_rs_in.read() == wb_rd_in.read())
@@ -39,8 +39,9 @@ SC_MODULE(fowarding_unity) {
         ex_lower_alu_mux.write(_ex_lower_alu_mux);
     }
 
-    SC_CTOR(fowarding_unity) {
+    SC_CTOR(fowarding_unit) {
         SC_METHOD(run);
-        sensitive << ex_rs_in << ex_rt_in << mem_rd_in << wb_rd_in << mem_reg_write << wb_reg_write;
+        sensitive << ex_rs_in << ex_rt_in << mem_rd_in << wb_rd_in
+                  << mem_reg_write << wb_reg_write;
     }
 };

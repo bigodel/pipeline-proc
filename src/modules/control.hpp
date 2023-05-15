@@ -9,6 +9,7 @@ SC_MODULE(control) {
     sc_out<bool> reg_write;
 
     sc_out<bool> branch;
+    sc_out<bool> flush;
     sc_out<bool> jump;
 
     // alu output
@@ -22,6 +23,8 @@ SC_MODULE(control) {
 
     void run() {
         // auxiliary values
+        // IF/ID
+        bool _flush = false;
         // EX
         ALU_OP _alu_op = 0;
         bool _alu_src = false;
@@ -74,16 +77,18 @@ SC_MODULE(control) {
             break;
         case OP_JN:
             _alu_op = SUB;
-            _branch = true;
+            _branch = _flush = true;
             break;
         case OP_JZ:
             _alu_op = ADD;
-            _branch = true;
+            _branch = _flush = true;
             break;
         default:
             break;
         }
         // write values (if instruction is invalid it will write false)
+        // IF/ID
+        flush.write(_flush);
         // EX
         jump.write(_jump);
         alu_op.write(_alu_op);
