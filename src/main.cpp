@@ -627,7 +627,7 @@ int sc_main(int argc, char *argv[]) {
     sc_trace(fp, if_id_reg.inst_in, "if_id_reg|0-1-inst_in");
     sc_trace(fp, if_id_reg.inst_out, "if_id_reg|0-2-inst_out");
     sc_trace(fp, if_id_reg.if_id_write, "if_id_reg|0-3-if_id_write");
-    sc_trace(fp, if_id_reg.flush, "if_id_reg|0-4-if_id_write");
+    sc_trace(fp, if_id_reg.flush, "if_id_reg|0-4-flush");
     sc_trace(fp, if_id_reg.if_adder_s_in, "if_id_reg|1-5-if_adder_s_in");
     sc_trace(fp, if_id_reg.if_adder_s_out, "if_id_reg|1-6-if_adder_s_out");
 
