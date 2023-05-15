@@ -15,7 +15,7 @@ using namespace std;
 #include "modules/data_memory.hpp"
 #include "modules/detection_unit.hpp"
 #include "modules/ex_mem_reg.hpp"
-#include "modules/fowarding_unit.hpp"
+#include "modules/forwarding_unit.hpp"
 #include "modules/id_ex_reg.hpp"
 #include "modules/if_id_reg.hpp"
 #include "modules/instruction_memory.hpp"
@@ -438,17 +438,17 @@ int sc_main(int argc, char *argv[]) {
     wb_mux.out(wb_mux_out);
 
     // ### HAZARDS ###
-    fowarding_unit fowarding_unit("fowarding_unit");
-    fowarding_unit.ex_rs_in(id_ex_inst_25_21_out);
-    fowarding_unit.ex_rt_in(id_ex_inst_20_16_out);
-    fowarding_unit.mem_rd_in(ex_mem_st_mux_out);
-    fowarding_unit.wb_rd_in(mem_wb_st_mux_out);
+    forwarding_unit forwarding_unit("forwarding_unit");
+    forwarding_unit.ex_rs_in(id_ex_inst_25_21_out);
+    forwarding_unit.ex_rt_in(id_ex_inst_20_16_out);
+    forwarding_unit.mem_rd_in(ex_mem_st_mux_out);
+    forwarding_unit.wb_rd_in(mem_wb_st_mux_out);
 
-    fowarding_unit.mem_reg_write(ex_mem_mem_to_reg_out);
-    fowarding_unit.wb_reg_write(mem_wb_mem_to_reg_out);
+    forwarding_unit.mem_reg_write(ex_mem_mem_to_reg_out);
+    forwarding_unit.wb_reg_write(mem_wb_mem_to_reg_out);
 
-    fowarding_unit.ex_upper_alu_mux(ex_upper_alu_mux);
-    fowarding_unit.ex_lower_alu_mux(ex_lower_alu_mux);
+    forwarding_unit.ex_upper_alu_mux(ex_upper_alu_mux);
+    forwarding_unit.ex_lower_alu_mux(ex_lower_alu_mux);
 
     sc_signal<bool> control_mux_nop;
 
@@ -789,18 +789,19 @@ int sc_main(int argc, char *argv[]) {
 
     // ## HAZARD ##
     // # foward_unit #
-    sc_trace(fp, fowarding_unit.ex_rs_in, "HAZARD|fowarding_unit|0-ex_rs_in");
-    sc_trace(fp, fowarding_unit.ex_rt_in, "HAZARD|fowarding_unit|1-ex_rt_in");
-    sc_trace(fp, fowarding_unit.mem_rd_in, "HAZARD|fowarding_unit|2-mem_rd_in");
-    sc_trace(fp, fowarding_unit.wb_rd_in, "HAZARD|fowarding_unit|3-wb_rd_in");
-    sc_trace(fp, fowarding_unit.mem_reg_write,
-             "HAZARD|fowarding_unit|4-mem_reg_write");
-    sc_trace(fp, fowarding_unit.wb_reg_write,
-             "HAZARD|fowarding_unit|5-wb_reg_write");
-    sc_trace(fp, fowarding_unit.ex_upper_alu_mux,
-             "HAZARD|fowarding_unit|6-ex_upper_alu_mux");
-    sc_trace(fp, fowarding_unit.ex_lower_alu_mux,
-             "HAZARD|fowarding_unit|7-ex_lower_alu_mux");
+    sc_trace(fp, forwarding_unit.ex_rs_in, "HAZARD|forwarding_unit|0-ex_rs_in");
+    sc_trace(fp, forwarding_unit.ex_rt_in, "HAZARD|forwarding_unit|1-ex_rt_in");
+    sc_trace(fp, forwarding_unit.mem_rd_in,
+             "HAZARD|forwarding_unit|2-mem_rd_in");
+    sc_trace(fp, forwarding_unit.wb_rd_in, "HAZARD|forwarding_unit|3-wb_rd_in");
+    sc_trace(fp, forwarding_unit.mem_reg_write,
+             "HAZARD|forwarding_unit|4-mem_reg_write");
+    sc_trace(fp, forwarding_unit.wb_reg_write,
+             "HAZARD|forwarding_unit|5-wb_reg_write");
+    sc_trace(fp, forwarding_unit.ex_upper_alu_mux,
+             "HAZARD|forwarding_unit|6-ex_upper_alu_mux");
+    sc_trace(fp, forwarding_unit.ex_lower_alu_mux,
+             "HAZARD|forwarding_unit|7-ex_lower_alu_mux");
 
     // # detection_unit #
     sc_trace(fp, detection_unit.if_id_reg_rs,
