@@ -586,7 +586,7 @@ int sc_main(int argc, char *argv[]) {
             int imm;
 
             inst_file >> rs >> rt >> imm;
-            imm--;
+            if (branch) imm--;
 
             instruction = (instruction, REG_ADDR(rs), REG_ADDR(rt), IMM(imm));
         } else if (jump) {
