@@ -1,5 +1,5 @@
-#include <systemc.h>
 #include "definitions.hpp"
+#include <systemc.h>
 
 SC_MODULE(if_id_reg) {
     sc_in_clk clock;
@@ -22,9 +22,14 @@ SC_MODULE(if_id_reg) {
     }
 
     void write() {
-        // write
+        if (if_id_write.read()) {
+            // write
             inst_out.write(memory[0]);
             if_adder_s_out.write(memory[1]);
+        } else {
+            // write
+            inst_out.write(WORD(0));
+        }
     }
 
     SC_CTOR(if_id_reg) {

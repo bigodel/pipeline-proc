@@ -455,6 +455,7 @@ int sc_main(int argc, char *argv[]) {
 
     // Control
     detection_unity.id_ex_mem_read(id_ex_mem_read_out);
+    detection_unity.branch(branch);
 
     // # Output #
     // Control
@@ -581,12 +582,14 @@ int sc_main(int argc, char *argv[]) {
             int imm;
 
             inst_file >> rs >> rt >> imm;
+            imm--;
 
             instruction = (instruction, REG_ADDR(rs), REG_ADDR(rt), IMM(imm));
         } else if (jump) {
             int imm;
 
             inst_file >> imm;
+            imm--;
 
             instruction = (instruction, sc_bv<10>(0), IMM(imm));
         }
@@ -616,8 +619,9 @@ int sc_main(int argc, char *argv[]) {
 
     sc_trace(fp, if_id_reg.inst_in, "if_id_reg|0-1-inst_in");
     sc_trace(fp, if_id_reg.inst_out, "if_id_reg|0-2-inst_out");
-    sc_trace(fp, if_id_reg.if_adder_s_in, "if_id_reg|1-3-if_adder_s_in");
-    sc_trace(fp, if_id_reg.if_adder_s_out, "if_id_reg|1-4-if_adder_s_out");
+    sc_trace(fp, if_id_reg.if_id_write, "if_id_reg|0-3-if_id_write");
+    sc_trace(fp, if_id_reg.if_adder_s_in, "if_id_reg|1-4-if_adder_s_in");
+    sc_trace(fp, if_id_reg.if_adder_s_out, "if_id_reg|1-5-if_adder_s_out");
 
     sc_trace(fp, register_file.reg1, "register_file|0-1-reg1");
     sc_trace(fp, register_file.reg2, "register_file|0-2-reg2");
